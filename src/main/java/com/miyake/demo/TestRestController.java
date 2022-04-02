@@ -68,6 +68,7 @@ import com.miyake.demo.jsonobject.TestItemListElement;
 import com.miyake.demo.jsonobject.TestPlan;
 import com.miyake.demo.jsonobject.TestPlan2;
 import com.miyake.demo.jsonobject.TestPlan2Element;
+import com.miyake.demo.jsonobject.TesterJson;
 import com.miyake.demo.jsonobject.WebSocketSignal;
 import com.miyake.demo.repository.ConnectorRepository;
 import com.miyake.demo.repository.EquipmentCategoryRepository;
@@ -287,6 +288,15 @@ public class TestRestController {
     	return this.testerRepository.findByVendor(vendor);
     }
     
+    @GetMapping("/testerListJson")
+    public List<TesterJson> testerList(@RequestParam(value = "vendor", required=true) Long vendor) {
+    	List<TesterJson> ret = new ArrayList<TesterJson>();
+    	for (TesterEntity e : this.testerRepository.findByVendor(vendor)) {
+    		ret.add(new TesterJson(e.getId(), e.getProduct_name()));
+    	}
+    	
+    	return ret;
+    }
     
     @PostMapping("/TesterEntity")
     public TesterEntity createTester(@RequestBody TesterEntity tester) {
@@ -881,7 +891,7 @@ public class TestRestController {
     		json.setTesterName(tester.getProduct_name());
     		json.setMyTesterName(e.getName());
     		json.setStatus(e.getOnline() ? "Online" : "-");
-    		json.setCategory(tester.getCategoryEntity().getCategory_name());
+    		//json.setCategory(tester.getCategoryEntity().getCategory_name());
     		ret.add(json);
     	}
     	return ret;

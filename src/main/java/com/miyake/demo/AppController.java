@@ -1,6 +1,8 @@
 package com.miyake.demo;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -16,10 +18,12 @@ import org.springframework.web.util.HtmlUtils;
 
 import com.miyake.demo.entities.EquipmentEntity;
 import com.miyake.demo.entities.ProjectEntitySimple;
+import com.miyake.demo.entities.TesterCategoryEntity;
 import com.miyake.demo.entities.UserEntity;
 import com.miyake.demo.repository.EquipmentRepository;
 import com.miyake.demo.repository.PortRepository;
 import com.miyake.demo.repository.ProjectRepositorySimple;
+import com.miyake.demo.repository.TesterCategoryRepository;
 import com.miyake.demo.repository.UserRepository;
  
 
@@ -37,6 +41,9 @@ public class AppController {
     
     @Autowired
     private PortRepository portRepository;
+    
+    @Autowired
+    private TesterCategoryRepository testerCategoryRepository;
     
     @GetMapping("")
     public String viewHomePage(Model model) {
@@ -157,6 +164,17 @@ public class AppController {
     public String testerScreen(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) String id) {
 		model.addAttribute("tester", id);
     	return "testerscreen";
+    }
+	
+	@GetMapping("/testerdef")
+    public String tester(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
+	    Map<Long, String> checkBoxCategory = new LinkedHashMap<>();
+	    for (TesterCategoryEntity e : this.testerCategoryRepository.findAll()) {
+	    	checkBoxCategory.put(e.getId(), e.getCategory_name());
+		    model.addAttribute("categoryCheckBox", checkBoxCategory);	    	
+	    }
+
+    	return "testerdef";
     }
 	
     @MessageMapping("/hello")

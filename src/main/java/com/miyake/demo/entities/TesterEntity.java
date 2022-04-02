@@ -25,15 +25,15 @@ public class TesterEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	private Long category;
+//	private Long category;
 	
 	private Long vendor;
 	
 	private String product_name;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "category", insertable = false, updatable = false)
-    private TesterCategoryEntity categoryEntity;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "category", insertable = false, updatable = false)
+//    private TesterCategoryEntity categoryEntity;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "vendor", insertable = false, updatable = false)

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
+	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+    <script type="text/javascript">
+    $(function() {
+		$.ajax({
+			type: "GET",
+			url: "header",
+			dataType : "html"
+		})
+		.done(function(data){ 
+			$('#headerDiv').html(data);
+		})
+		.fail(function(XMLHttpRequest, textStatus, errorThrown){
+			alert(errorThrown);
+		});
+		
+		var table = null;
+		
+		function updateVendors() {
+			$.ajax({
+				type: "GET",
+				url: "testerVendors",
+				dataType : "json"
+			})
+			.done(function(data){ 
+				$('#testervendor').empty();
+				var vendor = null;
+				for (let o of data) {
+					$('#testervendor').append($('<option>').html(o.vendorname).val(o.id));
+					if (vendor == null) {
+						vendor = o.id;
+					}
+				}
+				if (table == null) {
+					createTable();
+				}
+			})
+			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+				alert(errorThrown);
+			});					
+		};
+		
+		$('#vendorButton').click(function() {
+			$("#vendorDialog").dialog('open');
+		});		
+		
+		updateVendors();
+	
+		function createTable() {
+//			$('#table').remove();
+//			$('#main').append('<table id="table"></table>')
+			if (table != null) {
+				table.destroy();
+				$('#table').remove();
+				$('#main').append('<div id="table"></table>');
+			}
+			
+			table = $('#table').DataTable({
+				"sAjaxSource": 'testerListJson?vendor=' + $('#testervendor').val(),
+				"sAjaxDataProp": "",
+				"columnDefs": [
+				            {
+				                "targets": [ 0 ],
+				                "visible": false,
+				                "searchable": false
+				            }
+				        ],
+				"aoColumns": [
+					{ "sTitle": "ID", "mData": "id" },
+					{ "sTitle": "Product Name", "mData": "name" },
+					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
+					{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
+				]
+			});	
+			
+			$('#table' + ' tbody').on( 'click', 'button', function () {
+				var cls = $(this).attr('class');
+				var data = table.row( $(this).parents('tr') ).data();
+				if (cls == 'btn-edit') {
+					$("#configDialog").dialog('open');
+				}
+				else if ('btn-delete') {
+				
+				}
+		    } );
+		}
+		
+		$('#testervendor').change(function() {
+			//table.ajax.reload();
+			createTable();
+			//$('#table').remove();
+		});
+		
+		$("#vendorDialog").dialog({
+			modal:true,
+			autoOpen: false,
+			title: "Vendor Name",
+			width: 400,
+			height: 200,
+			buttons: {
+				"OK": function() {
+					var obj = new Object();
+					obj.vendorname = $('#newTesterVendor').val();
+					if (obj.vendorname == '') {
+						return;
+					}
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/testerVendor",
+						data: json,
+						contentType: "application/json",
+						dataType : "json"
+					}).done(function(data){
+						updateVendors();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});										
+					$(this).dialog("close");
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});	
+		
+		$("#configDialog").dialog({
+			modal:true,
+			autoOpen: false,
+			title: "Config",
+			width: 800,
+			height: 400,
+			buttons: {
+				"OK": function() {							
+					$(this).dialog("close");
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});	
+			
+    });
+    </script>
+</head>
+<body>
+	<div id='headerDiv'></div>
+	<div>Manufacturer<select id='testervendor'></select><button id='vendorButton'>Add</button></div>
+	<div id="vendorDialog">
+		<input type="text" id="newTesterVendor">	
+	</div>
+	<div id="configDialog">
+	    <label th:each="item:${categoryCheckBox}">
+	      <input class="form-check-input" type="checkbox" name="selectedCategory" th:id="${item.key}" th:value="${item.key}" th:text="${item.value}"/>
+	    </label>
+	</div>
+	<div id="main"><table id="table"></table></div>
+</body>
+</html>
