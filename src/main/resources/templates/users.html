@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- 
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+ -->
+<head>
+    <meta charset="ISO-8859-1">
+    <title>List Users</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+    <link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
+	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<link rel="stylesheet" type="text/css" href="/nav.css" />
+    <script type="text/javascript">
+    	$(function() {
+    		$.ajax({
+    			type: "GET",
+    			url: "header",
+    			dataType : "html"
+    		})
+    		.done(function(data){ 
+    			$('#headerDiv').html(data);
+    		})
+    		.fail(function(XMLHttpRequest, textStatus, errorThrown){
+    			alert(errorThrown);
+    		});
+//			var token = $("meta[name='_csrf']").attr("content");
+//			var header = $("meta[name='_csrf_header']").attr("content");
+//			$(document).ajaxSend(function(e, xhr, options) {
+//				xhr.setRequestHeader(header, token);
+//			});
+			
+			var table = $('#userTable').DataTable({
+				"sAjaxSource": 'userEntities',
+				"sAjaxDataProp": "",
+				"columnDefs": [
+				            {
+				                "targets": [ 0 ],
+				                "visible": false,
+				                "searchable": false
+				            }
+				        ],
+				"aoColumns": [
+					{ "sTitle": "ID", "mData": "id" },
+					{ "sTitle": "Email", "mData": "email" },
+					{ "sTitle": "First Name", "mData": "firstName" },
+					{ "sTitle": "Family Name", "mData": "lastName"},
+					{ "sTitle": "Role", "mData": "role"}
+				]
+			});
+			
+			$("#passwordDialog").dialog({
+				autoOpen: false,
+				modal:true,
+				title: 'Change Password',
+				width: 600,
+				height: 300,
+				buttons: {
+				"OK": function() {
+						if (($('#newPassword1').val() == $('#newPassword2').val()) && ($('#newPassword1').val() != '')) {
+							$.ajax({
+								type: "GET",
+								url: "password?password=" + $('#newPassword1').val(),
+								dataType : "json"
+							})
+							.done(function(data){
+								diagram.setData(data);
+							})
+							.fail(function(XMLHttpRequest, textStatus, errorThrown){
+								alert(errorThrown);
+							});
+						}
+						else if ($('#newPassword1').val() == '') {
+							alert('Password is empty');
+						}
+						else {
+							alert('Password does not match');
+						}
+						$(this).dialog("close");
+					}
+				}
+			});			
+			
+			$('#changePassword').click(function(){
+				$("#passwordDialog").dialog("open");
+			});
+		});
+	</script>
+
+</head>
+<body>
+<div id='headerDiv'></div>
+<div class="container text-center">
+    <div>
+        <form style="display: inline" th:action="@{/logout}" method="post">
+                Welcome <b>[[${#request.userPrincipal.principal.fullName}]]</b>
+            <button id="/logout" type="submit" class="btn btn-link btn-sm">Logout</button>
+        </form>
+        <button id="changePassword" class="btn btn-link btn-sm">Change Password</button>
+    </div>
+    <div>
+        <h1>List of Users</h1>
+    </div>
+	<table id="userTable"></table>
+	<div id="passwordDialog"><div>New Password<input type="password" id="newPassword1"></div><div>New Password<input type="password" id="newPassword2">(Confirm)</div></div>
+</div>
+</body>
+</html>

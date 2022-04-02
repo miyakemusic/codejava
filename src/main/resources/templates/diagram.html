@@ -1,0 +1,315 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>    
+	<script type="text/javascript">
+		class DiagramCanvas {
+			constructor(baseDiv) {
+				this.offsetx = 100;
+				this.offsety = 100;
+				
+				var width = 1600;
+				var height = 1600;
+				this.div = baseDiv;
+				$('#' + baseDiv).css({'position':'relative', 'width': width + 'px', 'height': height + 'px'});
+				$('#' + baseDiv).append('<canvas id="link"></canvas>');
+				$('#link').css({'position':'absolute', 'top':'0px', 'left':'0px', 'width': width + 'px', 'height':height + 'px'});
+				var linkCanvas = document.getElementById('link');
+				linkCanvas.width = width;
+				linkCanvas.height = height;
+				
+				$('#' + baseDiv).append('<canvas id="tentative"></canvas>');
+				$('#tentative').css({'position':'absolute', 'top':'0px', 'left':'0px', 'width':width + 'px', 'height':height + 'px'});
+				var tentativeCanvas = document.getElementById('tentative');
+				tentativeCanvas.width = width;
+				tentativeCanvas.height = height;				
+				
+				this.linkCtx = $("#link")[0].getContext("2d");
+				this.tentativeCtx = $("#tentative")[0].getContext("2d");
+			}
+			
+			setData(data) {
+				var fontsize = 14;
+				var buttons = [];
+				var selectedButton = null;
+				var buttonDown = false;
+				
+				for (let obj of data.items) {
+					buttons.push(obj.id);
+					
+					$('#' + this.div).append('<input type="submit" id="' + obj.id + '"' + ' value="' + obj.text + '">');
+					$('#' + obj.id).mousedown(function() {
+						buttonDown = true;
+						selectedButton = $(this);
+					});
+					$('#' + obj.id).mouseup(function() {
+						selectedButton = null;
+					});
+					$('#' + obj.id).mouseenter(function() {
+						if (selectedButton != null) {
+							$(this).css("color", "red");
+						}
+					});
+					$('#' + obj.id).mouseleave(function() {
+						if (selectedButton != null) {
+							$(this).css("color", "black");
+						}
+					});
+					$('#' + obj.id).css("position", "absolute");
+					$('#' + obj.id).css("display", "inline-block");
+					$('#' + obj.id).css("left", obj.x + this.offsetx + 'px');
+					$('#' + obj.id).css("top", obj.y + this.offsety + 'px');
+					$('#' + obj.id).css("width", obj.width + 'px');
+					$('#' + obj.id).css("height", obj.height + 'px');
+					$('#' + obj.id).css("line-height", obj.height + 'px');
+					$('#' + obj.id).css("font-size", "10px");
+				}
+				
+				this.linkCtx.strokeRect(0, 0, 1600, 1600);
+				
+				for(let link of data.links) {
+					this.linkCtx.beginPath();
+					this.linkCtx.moveTo(link.x1 + this.offsetx, link.y1 + this.offsety);
+					this.linkCtx.lineTo(link.x2 + this.offsetx, link.y2 + this.offsety);
+					this.linkCtx.closePath();
+					this.linkCtx.stroke();			
+				}
+						
+				var draggin = false;
+				var rectStartx;
+				var rectStarty;
+				
+				var me = this;
+				
+				$('#tentative').mousemove(function(e) {
+					if (selectedButton != null) {
+						me.tentativeCtx.clearRect(0, 0, 1600, 1600);
+						me.tentativeCtx.beginPath();
+						var buttonPos = selectedButton.position();
+						var buttonMaxX = buttonPos.left + selectedButton.width();
+						var buttonMaxY = buttonPos.top;
+						
+						var startX;
+						var startY;
+						var endX;
+						var endY;
+						if (e.offsetX > buttonMaxX) {
+							startX = buttonMaxX;
+						}
+						else {
+							startX = buttonPos.left;
+						}
+						endX = e.offsetX;
+						me.tentativeCtx.setLineDash([5, 15]);
+						me.tentativeCtx.moveTo(startX,	buttonPos.top + selectedButton.height()/2);
+						me.tentativeCtx.lineTo(endX, e.offsetY);
+						me.tentativeCtx.closePath();
+						me.tentativeCtx.stroke();						
+					}
+					else if (draggin == true) {
+						me.tentativeCtx.clearRect(0, 0, 1600, 1600);
+						me.tentativeCtx.beginPath();
+						me.tentativeCtx.strokeRect(rectStartx, rectStarty, e.offsetX - rectStartx, e.offsetY - rectStarty);
+						
+						for (let button of buttons) {
+							console.log(button);
+							
+							var offset = $('#' + button).position();
+							var y = offset.top;
+							var x = offset.left;
+							var w = $('#' + button).width();
+							var h = $('#' + button).height();
+							
+							if (rectStartx < x && rectStarty < y && e.offsetX > (x+w) && e.offsetY > (y+h)) {
+								$('#' + button).css("color", "red");
+							}
+							else {
+								$('#' + button).css("color", "black");
+							}
+						}
+					}
+				});
+				$('#tentative').mousedown(function(e) {
+					draggin = true;
+					rectStartx = e.offsetX;
+					rectStarty = e.offsetY;
+				});
+				$('#tentative').mouseup(function(e) {
+					draggin = false;
+					me.tentativeCtx.clearRect(0, 0, 1600, 1600);
+				});			
+			
+			}
+		}
+		
+    	$(function() {
+    		var top = 50;
+    		var left = 20;
+    		
+	      $.ajax({
+	        type: "GET",
+	        url: "equipmentDiagram?parent= + [[${parent}]]",
+	        dataType : "json"
+	      })
+	      .done(function(data){
+			var diagram = new DiagramCanvas('forClass');
+			diagram.setData(data);
+/*	
+	        var canvas = $("#canvas");
+	        var ctx = canvas[0].getContext("2d");
+
+			$('#div').css("position", "relative");
+			$('#div').css("top", top + "px");
+			$('#div').css("left", left + "px");
+			$('#div').css("background-color", "green");
+			
+			$('#canvas').css("position", "absolute");
+			$('#canvas').css("top", "0px");
+			$('#canvas').css("left", "0px");
+
+			$('#drag').css("position", "absolute");
+			$('#drag').css("top", "0px");
+			$('#drag').css("left", "0px");
+			
+			var screen = $("#drag");
+			var ctx2 = screen[0].getContext("2d");
+			
+			var fontsize = 14;
+			
+			var buttons = [];
+			
+			var selectedButton = null;
+			
+			for (let obj of data.items) {
+				buttons.push(obj.id);
+				
+				$('#div').append('<input type="submit" id="' + obj.id + '"' + ' value="' + obj.text + '">');
+				$('#' + obj.id).mousedown(function() {
+					buttonDown = true;
+					selectedButton = $(this);
+				});
+				$('#' + obj.id).mouseup(function() {
+					selectedButton = null;
+				});
+				$('#' + obj.id).mouseenter(function() {
+					if (selectedButton != null) {
+						$(this).css("color", "red");
+					}
+				});
+				$('#' + obj.id).mouseleave(function() {
+					if (selectedButton != null) {
+						$(this).css("color", "black");
+					}
+				});
+				$('#' + obj.id).css("position", "absolute");
+				$('#' + obj.id).css("display", "inline-block");
+				$('#' + obj.id).css("left", obj.x + 'px');
+				$('#' + obj.id).css("top", obj.y + 'px');
+				$('#' + obj.id).css("width", obj.width + 'px');
+				$('#' + obj.id).css("height", obj.height + 'px');
+				$('#' + obj.id).css("line-height", obj.height + 'px');
+				$('#' + obj.id).css("font-size", "10px");
+			}
+
+			ctx.strokeRect(0, 0, 1600, 1600);
+			
+			for( let link of data.links) {
+				ctx.beginPath();
+				ctx.moveTo(link.x1, link.y1);
+				ctx.lineTo(link.x2, link.y2);
+				ctx.closePath();
+				ctx.stroke();			
+			}
+			
+			var draggin = false;
+			var rectStartx;
+			var rectStarty;
+			$('#drag').mousemove(function(e) {
+				if (selectedButton != null) {
+					ctx2.clearRect(0, 0, 1600, 1600);
+					ctx2.beginPath();
+					var buttonPos = selectedButton.position();
+					var buttonMaxX = buttonPos.left + selectedButton.width();
+					var buttonMaxY = buttonPos.top;
+					
+					var startX;
+					var startY;
+					var endX;
+					var endY;
+					if (e.offsetX > buttonMaxX) {
+						startX = buttonMaxX;
+					}
+					else {
+						startX = buttonPos.left;
+					}
+					endX = e.offsetX;
+					ctx2.moveTo(startX,	buttonPos.top + selectedButton.height()/2);
+					ctx2.lineTo(endX, e.offsetY);
+					ctx2.closePath();
+					ctx2.stroke();						
+				}
+				else if (draggin == true) {
+					ctx2.clearRect(0, 0, 1600, 1600);
+					ctx.beginPath();
+					ctx2.strokeRect(rectStartx, rectStarty, e.offsetX - rectStartx, e.offsetY - rectStarty);
+					
+					for (let button of buttons) {
+						console.log(button);
+						
+						var offset = $('#' + button).position();
+						var y = offset.top;
+						var x = offset.left;
+						var w = $('#' + button).width();
+						var h = $('#' + button).height();
+						
+						if (rectStartx < x && rectStarty < y && e.offsetX > (x+w) && e.offsetY > (y+h)) {
+							$('#' + button).css("color", "red");
+						}
+						else {
+							$('#' + button).css("color", "black");
+						}
+					}
+				}
+			});
+			$('#drag').mousedown(function(e) {
+				draggin = true;
+				rectStartx = e.offsetX;
+				rectStarty = e.offsetY;
+			});
+			$('#drag').mouseup(function(e) {
+				draggin = false;
+				ctx2.clearRect(0, 0, 1600, 1600);
+			});	
+*/
+		})
+		.fail(function(XMLHttpRequest, textStatus, errorThrown){
+			alert(errorThrown);
+		});
+		
+		
+  
+			var token = $("meta[name='_csrf']").attr("content");
+			var header = $("meta[name='_csrf_header']").attr("content");
+			$(document).ajaxSend(function(e, xhr, options) {
+				xhr.setRequestHeader(header, token);
+			});
+		});
+	</script>
+    <title>Equipment Diagram</title>
+</head>
+<body>
+    <h1 th:text="${title}"></h1>
+    <div id="forClass"></div>
+<!--
+    <div id="div"><canvas id="canvas" width="1600px" height="1600px"></canvas><canvas id="drag" width="1600px" height="1600px"></canvas></div>
+-->    
+</body>
+</html>

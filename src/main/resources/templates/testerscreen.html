@@ -1,0 +1,45 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<script type="text/javascript" th:src="@{/js//mywebsocket.js}"></script>
+        	
+	<script th:inline="javascript">
+		$(function() {
+			$.ajax({
+				type: "GET",
+				url: "header",
+				dataType : "html"
+			})
+			.done(function(data){ 
+				$('#headerDiv').html(data);
+			})
+			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+				alert(errorThrown);
+			});		
+  
+/*			var token = $("meta[name='_csrf']").attr("content");
+			var header = $("meta[name='_csrf_header']").attr("content");
+			$(document).ajaxSend(function(e, xhr, options) {
+				xhr.setRequestHeader(header, token);
+			});
+*/
+		});
+	</script>
+    <title>Project List</title>
+</head>
+<body>
+	<div id="headerDiv"></div>
+    <h1 th:text="${tester}"></h1>
+    <div id="maindiv"></div>
+</body>
+</html>

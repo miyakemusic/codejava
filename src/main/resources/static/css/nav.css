@@ -1,0 +1,52 @@
+.gnav {
+	display: flex;
+	height: 2rem;
+	margin: 0/* auto*/;
+	width: 100%;
+	background: #001b34;
+}
+
+.gnav > li {
+/*	width: 25%; */
+/*	width: 100px;*/
+/*		margin: 0 1rem; */
+}
+
+.gnav li {
+	list-style: none;
+	position: relative;
+}
+.gnav li a {
+	background: #001b34; 
+/*	border-right: 1px solid #eee; */
+	color: #fff;
+	display: block;
+	height: 2rem;
+	line-height: 2rem;
+	text-align: center;
+	text-decoration: none;
+	width: 100%;
+}
+
+.gnav li li {
+	height: 0;
+	overflow: hidden;
+	transition: .5s;
+}
+.gnav li li a {
+	border-top: 1px solid #eee;
+}
+
+.gnav li:hover > ul > li {
+	height: 2rem;
+	overflow: visible;
+}
+
+.left {
+	margin: 0 1rem;
+}
+
+.right {
+	margin-left: auto;
+	margin-right: 20px;
+}

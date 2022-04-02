@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Silverbullet</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/webjars/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+		$.ajax({
+			type: "GET",
+			url: "header",
+			dataType : "html"
+		})
+		.done(function(data){ 
+			$('#headerDiv').html(data);
+		})
+		.fail(function(XMLHttpRequest, textStatus, errorThrown){
+			alert(errorThrown);
+		});
+    </script>
+</head>
+<body>
+<div id='headerDiv'></div>
+	<div id="article">
+    </div>    
+</body>
+</html>

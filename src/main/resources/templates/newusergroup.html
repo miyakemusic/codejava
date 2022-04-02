@@ -1,0 +1,40 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/mainnav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<script type="text/javascript" src="/js/user.js"></script>
+	<script type="text/javascript">	
+		$(function() {
+			$.ajax({
+				type: "GET",
+				url: "headerout",
+				dataType : "html"
+			})
+			.done(function(data){ 
+				$('#headerDiv').html(data);
+			})
+			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+				alert(errorThrown);
+			});
+			new User('userGroup', function(completed){
+				window.location.href = "/main";
+			});
+		});
+	</script>
+    <title>New Group Registration</title>
+</head>
+<body>
+<div id="headerDiv"></div>
+<div id="userGroup"></div>
+</body>
+</html>		

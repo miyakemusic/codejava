@@ -1,0 +1,30 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+	<link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>    
+	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
+	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript" src="/portdetail.js"></script>
+	<script type="text/javascript" src="/testitemeditor.js"></script>
+	<script th:inline="javascript">
+		$(function() {	
+			var equipment = [[${equipment}]];
+			var portDetail = new PortDetail('testItems', equipment, 'equipment');
+		});
+	</script>
+    <title>Test Items</title>
+</head>
+<body>
+    <h1 th:text="${parent}"></h1>
+    <div id="testItems"></div>
+</body>
+</html>

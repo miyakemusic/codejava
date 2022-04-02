@@ -1,0 +1,266 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
+	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript" th:src="@{/js/mywebsocket.js}"></script>
+	<script type="text/javascript" th:src="@{/js/mytesterstatus.js}"></script>
+	<script type="text/javascript">
+		class TesterRegisterPane {
+			constructor(div) {
+				this.mainDiv = div + '_mainDiv';
+				$('#' + div).append('<div id="' + this.mainDiv + '"></div>');
+				$('#' + this.mainDiv).append('<div>Tester Vendor:<select id="testervendor"></select><button id="addTesterVendor">Add</button></div>');
+				$('#' + this.mainDiv).append('<div>Tester Type:<input type="text" id="testertype"></div>');
+				$('#' + this.mainDiv).append('<div>Tester Model:<select id="testermodel"></select><button id="addTesterModel">Add</button></div>');
+				$('#' + this.mainDiv).append('<div>Tester ID:<input type="text" id="testerid">(Serial Number)</div>');
+				
+				$('#' + this.mainDiv).append('<div>Password:<input type="text" id="testerpassword"></div>');
+				
+				updateVendors();
+				
+				$('#testervendor').change(function(){
+					updateModels($(this).val());
+				});
+				
+				function updateVendors() {
+					$.ajax({
+						type: "GET",
+						url: "testerVendors",
+						dataType : "json"
+					})
+					.done(function(data){ 
+						$('#testervendor').empty();
+						var vendor = null;
+						for (let o of data) {
+							$('#testervendor').append($('<option>').html(o.vendorname).val(o.id));
+							if (vendor == null) {
+								vendor = o.id;
+							}
+						}
+						$('#testervendor').val(vendor);
+						updateModels(vendor);
+					})
+					.fail(function(XMLHttpRequest, textStatus, errorThrown){
+						alert(errorThrown);
+					});					
+				}
+				
+				function updateModels(vendor) {
+					$.ajax({
+						type: "GET",
+						url: "TesterEntitiesByVendor?vendor=" + vendor,
+						dataType : "json"
+					})
+					.done(function(data){ 
+						$('#testermodel').empty();
+						for (let o of data) {
+							$('#testermodel').append($('<option>').html(o.product_name).val(o.id));
+						}
+					})
+					.fail(function(XMLHttpRequest, textStatus, errorThrown){
+						alert(errorThrown);
+					});						
+				}
+				
+				var me = this;
+				var dialogDiv = me.mainDiv + "_dialog";
+				$('#' + me.mainDiv).append('<div id="' + dialogDiv + '"></div>');
+				$('#addTesterVendor').click(function(){
+					$('#' + dialogDiv).append('<input type="text" id="newTesterVendor">');
+					$("#" + dialogDiv).dialog({
+						modal:true,
+						title: "Vendor Name",
+						width: 400,
+						height: 200,
+						buttons: {
+							"Close": function() {
+								var obj = new Object();
+								obj.vendorname = $('#newTesterVendor').val();
+								var json = JSON.stringify(obj);
+								$.ajax({
+									type: "POST",
+									url: "/testerVendor",
+									data: json,
+									contentType: "application/json",
+									dataType : "json"
+								}).done(function(data){
+									updateVendors();
+								}).fail(function(XMLHttpRequest, status, e){
+									alert(e);
+								});										
+								$(this).dialog("destroy");
+								$('#' + dialogDiv).empty();
+							}
+						}
+					});					
+				});
+				
+				$('#addTesterModel').click(function(){
+					var vendor = $('#testervendor').val();
+					var current = $('#testermodel option:selected').text();
+					var pane = new ModelRegister(dialogDiv, vendor, current);
+					$("#" + dialogDiv).dialog({
+						modal:true,
+						title: "Model Name",
+						width: 1000,
+						height: 600,
+						buttons: {
+							"Close": function() {		
+								pane.post();
+								$(this).dialog("destroy");
+								$('#' + dialogDiv).empty();
+								updateModels($('#testervendor').val());
+//								pane.remove();
+							}
+						}
+					});						
+				});
+			}
+			
+			remove() {
+				$('#' + this.mainDiv).remove();
+			}
+			
+			post() {
+				var testerid = $('#testerid').val();
+				var password = $('#testerpassword').val();
+				var tester = $('#testermodel').val();
+				
+				var obj = new Object();
+				obj.name = testerid;
+				obj.password = password;
+				obj.tester = tester;
+				
+				var json = JSON.stringify(obj);
+				$.ajax({
+					type: "POST",
+					url: "/registerTester",
+					data: json,
+					contentType: "application/json",
+					dataType : "text"
+				}).done(function(data){
+					updateVendors();
+				}).fail(function(XMLHttpRequest, status, e){
+					alert(e);
+				});					
+			}
+		}
+
+		class ModelRegister {
+			constructor(div, vendor, current) {
+				this.vendor = vendor;
+				var mainDiv = div + "_modelNameDiv";
+				$('#' + div).append('<div id="' + mainDiv + '"></div>');
+				this.modelNameDiv = mainDiv + "_text";
+				$('#' + mainDiv).append('Model Name: <input type="text" id="' + this.modelNameDiv +'" value="' + current + '">');
+				
+				var tableid = mainDiv + "_testitems";
+				$('#' + mainDiv).append('<table id="'+ tableid + '"></table>');
+				
+				var table = $('#' + tableid).DataTable({
+					"sAjaxSource": '/TestItemEntityS',
+					"sAjaxDataProp": "",
+					"columnDefs": [
+					            {
+					                "targets": [ 0 ],
+					                "visible": false,
+					                "searchable": false
+					            }
+					        ],
+					"aoColumns": [
+						{ "sTitle": "ID", "mData": "id" },
+						{ "sTitle": "Category", "mData": "categoryEntity.category" },
+						{ "sTitle": "Test Item", "mData": "test_item" },
+						{ "sTitle": "Select", "mData": null, "sDefaultContent": '<input type="checkbox" class="btn-edit"></input>' }
+					]
+				});
+			}
+			
+			post() {
+				var obj = new Object();
+				obj.product_name = $('#' + this.modelNameDiv).val();
+				obj.vendor = this.vendor;
+				var json = JSON.stringify(obj);
+				$.ajax({
+					type: "POST",
+					url: "/TesterEntity",
+					data: json,
+					contentType: "application/json",
+					dataType : "json"
+				}).done(function(data){
+					updateVendors();
+				}).fail(function(XMLHttpRequest, status, e){
+					alert(e);
+				});					
+			}
+		}
+		
+		$(function() {
+			$.ajax({
+				type: "GET",
+				url: "header",
+				dataType : "html"
+			})
+			.done(function(data){ 
+				$('#headerDiv').html(data);
+			})
+			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+				alert(errorThrown);
+			});
+			
+			$('#regTesterButton').click(function(){
+				showDialog();
+			});
+			
+			function showDialog() {
+				var pane = new TesterRegisterPane('regTesterDialog');
+				$("#regTesterDialog").dialog({
+					modal:true,
+					title: "Register Tester",
+					width: 900,
+					height: 500,
+					buttons: {
+						"Register": function() {
+							pane.post();
+							pane.remove();
+							$(this).dialog("destroy");
+						},
+						"Cancel": function() {
+							pane.remove();
+							$(this).dialog("destroy");
+						}
+					}
+				});
+			}
+			
+			new MyTesterStatus('mytesters');
+/*  
+			var token = $("meta[name='_csrf']").attr("content");
+			var header = $("meta[name='_csrf_header']").attr("content");
+			$(document).ajaxSend(function(e, xhr, options) {
+				xhr.setRequestHeader(header, token);
+			});
+*/
+		});
+	</script>
+    <title>Project List</title>
+</head>
+<body>
+	<div id='headerDiv'></div>
+    <div><button id="regTesterButton">Register Tester</button></div>
+    <div id="regTesterDialog"></div>
+	<div id="mytesters"></div>
+</body>
+</html>

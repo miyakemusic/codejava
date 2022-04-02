@@ -1,0 +1,17 @@
+<header id="header">
+	<ul class="gnav">
+        <li class="left"><a href="/projects">Projects</a></li>
+        <li class="left"><a href="/assets">Assets</a></li>
+        <li class="left"><a href="/users">Users</a></li>
+		<li class="right">
+ 			<a href="">[[${name}]]</a>
+	        <ul>
+		        <li><form style="display: inline" role="form" id="logout" th:action="@{/logout}" method="post">
+			 	   <a href="/logout" type="submit">Logout</a>
+					</form>
+				</li>
+	            <li><a href="">Change</a></li>
+	        </ul>
+		</li>
+	</ul>
+</header>
