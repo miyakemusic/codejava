@@ -47,6 +47,7 @@ import com.miyake.demo.entities.TestScenarioItemEntity;
 import com.miyake.demo.entities.TesterCapabilityEntity;
 import com.miyake.demo.entities.TesterCapabilityEntitySimple;
 import com.miyake.demo.entities.TesterCategoryEntity;
+import com.miyake.demo.entities.TesterCategoryRelationEntity;
 import com.miyake.demo.entities.TesterEntity;
 import com.miyake.demo.entities.TesterVendorEntity;
 import com.miyake.demo.entities.EquipmentPresentationEntity;
@@ -91,6 +92,7 @@ import com.miyake.demo.repository.TestScenarioItemRepository;
 import com.miyake.demo.repository.TestScenarioRepository;
 import com.miyake.demo.repository.TesterCapabilityRepository;
 import com.miyake.demo.repository.TesterCapabilityRepositorySimple;
+import com.miyake.demo.repository.TesterCategoryRelationRepository;
 import com.miyake.demo.repository.TesterCategoryRepository;
 import com.miyake.demo.repository.TesterRepository;
 import com.miyake.demo.repository.TesterVendorRepository;
@@ -181,6 +183,9 @@ public class TestRestController {
     
     @Autowired
     private TestScenarioItemRepository testScenarioItemRepository;
+    
+    @Autowired
+    private TesterCategoryRelationRepository testerCategoryRelationRepository;
     
     @Autowired
     private MyMessageHandler messageHandler;
@@ -292,6 +297,9 @@ public class TestRestController {
     public List<TesterJson> testerList(@RequestParam(value = "vendor", required=true) Long vendor) {
     	List<TesterJson> ret = new ArrayList<TesterJson>();
     	for (TesterEntity e : this.testerRepository.findByVendor(vendor)) {
+    		List<TesterCategoryRelationEntity> categoryRelation = testerCategoryRelationRepository.findByTester(e.getId());
+    		List<Long> category = new ArrayList<>();;
+    		categoryRelation.forEach(c -> category.add(c.getId()));
     		ret.add(new TesterJson(e.getId(), e.getProduct_name()));
     	}
     	
@@ -302,6 +310,19 @@ public class TestRestController {
     public TesterEntity createTester(@RequestBody TesterEntity tester) {
     	this.testerRepository.save(tester);
     	return tester;
+    }
+    
+    @PostMapping("/testerJson")
+    public String testerJson(@RequestBody TesterJson testerJson) {
+    	testerCategoryRelationRepository.deleteByTester(testerJson.id);
+
+    	for (Long category : testerJson.category) {
+    		TesterCategoryRelationEntity entity = new TesterCategoryRelationEntity();
+    		entity.setCategory(category);
+    		entity.setTester(testerJson.id);
+			testerCategoryRelationRepository.save(entity);
+    	}
+    	return "OK";
     }
     
     @GetMapping("/TesterCategoryEntityS")

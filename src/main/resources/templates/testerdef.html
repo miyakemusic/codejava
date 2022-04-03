@@ -56,16 +56,18 @@
 		
 		updateVendors();
 	
+		var selectedData;
+		
 		function createTable() {
 //			$('#table').remove();
 //			$('#main').append('<table id="table"></table>')
 			if (table != null) {
 				table.destroy();
 				$('#table').remove();
-				$('#main').append('<div id="table"></table>');
 			}
+			$('#main').append('<table id="testersTable"></table>');
 			
-			table = $('#table').DataTable({
+			table = $('#testersTable').DataTable({
 				"sAjaxSource": 'testerListJson?vendor=' + $('#testervendor').val(),
 				"sAjaxDataProp": "",
 				"columnDefs": [
@@ -83,9 +85,9 @@
 				]
 			});	
 			
-			$('#table' + ' tbody').on( 'click', 'button', function () {
+			$('#testersTable tbody').on( 'click', 'button', function () {
 				var cls = $(this).attr('class');
-				var data = table.row( $(this).parents('tr') ).data();
+				selectedData = table.row( $(this).parents('tr') ).data();
 				if (cls == 'btn-edit') {
 					$("#configDialog").dialog('open');
 				}
@@ -143,6 +145,30 @@
 			buttons: {
 				"OK": function() {							
 					$(this).dialog("close");
+					
+					var obj = new Object();
+					obj.id = selectedData.id;
+					obj.category = [];
+					$(".testerCategory").each(function(i,e){
+						if ($('#' + e.id).prop('checked')) {
+							obj.category.push(e.id);
+						}
+					});
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/testerJson",
+						data: json,
+						contentType: "application/json",
+						dataType : "json"
+					}).done(function(data){
+						
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});					
+					
+					//testerCategory
+					
 				},
 				"Cancel": function() {
 					$(this).dialog("close");
@@ -161,9 +187,9 @@
 	</div>
 	<div id="configDialog">
 	    <label th:each="item:${categoryCheckBox}">
-	      <input class="form-check-input" type="checkbox" name="selectedCategory" th:id="${item.key}" th:value="${item.key}" th:text="${item.value}"/>
+	      <input class="form-check-input testerCategory" type="checkbox" name="selectedCategory" th:id="${item.key}" th:value="${item.key}" th:text="${item.value}"/>
 	    </label>
 	</div>
-	<div id="main"><table id="table"></table></div>
+	<div id="main"></div>
 </body>
 </html>
