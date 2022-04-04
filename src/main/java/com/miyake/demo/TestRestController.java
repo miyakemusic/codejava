@@ -298,9 +298,16 @@ public class TestRestController {
     	List<TesterJson> ret = new ArrayList<TesterJson>();
     	for (TesterEntity e : this.testerRepository.findByVendor(vendor)) {
     		List<TesterCategoryRelationEntity> categoryRelation = testerCategoryRelationRepository.findByTester(e.getId());
-    		List<Long> category = new ArrayList<>();;
-    		categoryRelation.forEach(c -> category.add(c.getId()));
-    		ret.add(new TesterJson(e.getId(), e.getProduct_name()));
+    		List<Long> category = new ArrayList<>();
+    		String categoryText = "";
+    		for (TesterCategoryRelationEntity c : categoryRelation) {
+    			category.add(c.getCategory());
+    			categoryText += testerCategoryRepository.getById(c.getCategory()).getCategory_name() + "/";  			
+    		}
+    		if (!categoryText.isEmpty()) {
+    			categoryText = categoryText.substring(0, categoryText.length()-1);
+    		}
+    		ret.add(new TesterJson(e.getId(), e.getProduct_name(), category, categoryText));
     	}
     	
     	return ret;
@@ -314,13 +321,21 @@ public class TestRestController {
     
     @PostMapping("/testerJson")
     public String testerJson(@RequestBody TesterJson testerJson) {
-    	testerCategoryRelationRepository.deleteByTester(testerJson.id);
-
-    	for (Long category : testerJson.category) {
-    		TesterCategoryRelationEntity entity = new TesterCategoryRelationEntity();
-    		entity.setCategory(category);
-    		entity.setTester(testerJson.id);
-			testerCategoryRelationRepository.save(entity);
+    	if (testerJson.id != null) {
+	    	testerCategoryRelationRepository.deleteByTester(testerJson.id);
+	
+	    	for (Long category : testerJson.category) {
+	    		TesterCategoryRelationEntity entity = new TesterCategoryRelationEntity();
+	    		entity.setCategory(category);
+	    		entity.setTester(testerJson.id);
+				testerCategoryRelationRepository.save(entity);
+	    	}
+    	}
+    	else {
+    		TesterEntity e = new TesterEntity();
+    		e.setProduct_name(testerJson.name);
+    		e.setVendor(testerJson.vendorid);
+    		this.testerRepository.save(e);
     	}
     	return "OK";
     }

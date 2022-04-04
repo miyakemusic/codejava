@@ -59,8 +59,6 @@
 		var selectedData;
 		
 		function createTable() {
-//			$('#table').remove();
-//			$('#main').append('<table id="table"></table>')
 			if (table != null) {
 				table.destroy();
 				$('#table').remove();
@@ -80,6 +78,7 @@
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
 					{ "sTitle": "Product Name", "mData": "name" },
+					{ "sTitle": "Category", "mData": "categoryText" },
 					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
 					{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
 				]
@@ -89,6 +88,13 @@
 				var cls = $(this).attr('class');
 				selectedData = table.row( $(this).parents('tr') ).data();
 				if (cls == 'btn-edit') {
+					$(".testerCategory").each(function(i,e){
+						$('#' + e.id).prop('checked', false);
+					});
+					for (var c of selectedData.category) {
+						$('#' + c).prop('checked', true);
+					}
+
 					$("#configDialog").dialog('open');
 				}
 				else if ('btn-delete') {
@@ -160,9 +166,9 @@
 						url: "/testerJson",
 						data: json,
 						contentType: "application/json",
-						dataType : "json"
+						dataType : "text"
 					}).done(function(data){
-						
+						table.ajax.reload();
 					}).fail(function(XMLHttpRequest, status, e){
 						alert(e);
 					});					
@@ -175,7 +181,42 @@
 				}
 			}
 		});	
-			
+
+		$("#newTesterDialog").dialog({
+			modal:true,
+			autoOpen: false,
+			title: "New Tester",
+			width: 800,
+			height: 400,
+			buttons: {
+				"OK": function() {							
+					$(this).dialog("close");
+					
+					var obj = new Object();
+					obj.name = $('#newTesterText').val();
+					obj.vendorid = $('#testervendor').val();
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/testerJson",
+						data: json,
+						contentType: "application/json",
+						dataType : "text"
+					}).done(function(data){
+						createTable();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});										
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});	
+		
+		$('#addNewTester').click(function(){
+			$("#newTesterDialog").dialog('open');
+		});
     });
     </script>
 </head>
@@ -189,6 +230,10 @@
 	    <label th:each="item:${categoryCheckBox}">
 	      <input class="form-check-input testerCategory" type="checkbox" name="selectedCategory" th:id="${item.key}" th:value="${item.key}" th:text="${item.value}"/>
 	    </label>
+	</div>
+	<button id="addNewTester">Add New Product</button>
+	<div id="newTesterDialog">
+		Tester Name<input type="text" id="newTesterText">
 	</div>
 	<div id="main"></div>
 </body>
