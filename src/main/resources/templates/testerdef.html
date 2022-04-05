@@ -92,7 +92,7 @@
 						$('#' + e.id).prop('checked', false);
 					});
 					for (var c of selectedData.category) {
-						$('#' + c).prop('checked', true);
+						$('#categoryCheck' + c).prop('checked', true);
 					}
 
 					$("#configDialog").dialog('open');
@@ -157,7 +157,7 @@
 					obj.category = [];
 					$(".testerCategory").each(function(i,e){
 						if ($('#' + e.id).prop('checked')) {
-							obj.category.push(e.id);
+							obj.category.push(e.id.replace('categoryCheck', ''));
 						}
 					});
 					var json = JSON.stringify(obj);
@@ -213,9 +213,106 @@
 				}
 			}
 		});	
-		
+		$("#categoryEditDialog").dialog({
+			modal:true,
+			autoOpen: false,
+			title: "Category Editor",
+			width: 400,
+			height: 500,
+			buttons: {
+				"OK": function() {							
+					$(this).dialog("close");
+				
+					var obj = new Object();
+					obj.name = $('#newTesterText').val();
+					obj.vendorid = $('#testervendor').val();
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/",
+						data: json,
+						contentType: "application/json",
+						dataType : "text"
+					}).done(function(data){
+						createTable();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});	
+
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});		
+
 		$('#addNewTester').click(function(){
 			$("#newTesterDialog").dialog('open');
+		});
+		
+		var categoryTable = $('#categoryEidtTable').DataTable({
+			"sAjaxSource": 'TesterCategoryEntityS',
+			"sAjaxDataProp": "",
+			"columnDefs": [
+			            {
+			                "targets": [ 0 ],
+			                "visible": false,
+			                "searchable": false
+			            }
+			        ],
+			"aoColumns": [
+				{ "sTitle": "ID", "mData": "id" },
+				{ "sTitle": "Category", "mData": "category_name" },
+				{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
+				{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
+			]
+		});	
+		$('#categoryEidtTable tbody').on( 'click', 'button', function () {
+			var cls = $(this).attr('class');
+			var selectedCategory = table.row( $(this).parents('tr') ).data();
+			if (cls == 'btn-edit') {
+			}
+			else if ('btn-delete') {
+			
+			}
+	    } );
+		$('#editCategoryButton').click(function() {
+			$("#categoryEditDialog").dialog('open');
+		});
+		
+		$("#newCategoryDialog").dialog({
+			modal:true,
+			autoOpen: false,
+			title: "Category Editor",
+			width: 400,
+			height: 200,
+			buttons: {
+				"OK": function() {							
+					$(this).dialog("close");
+				
+					var obj = new Object();
+					obj.category_name = $('#newCategoryText').val();
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/TesterCategoryEntity",
+						data: json,
+						contentType: "application/json",
+						dataType : "json"
+					}).done(function(data){
+						categoryTable.ajax.reload();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});	
+
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});	
+		$('#addnewCategory').click(function(){
+			$("#newCategoryDialog").dialog('open');
 		});
     });
     </script>
@@ -224,16 +321,27 @@
 	<div id='headerDiv'></div>
 	<div>Manufacturer<select id='testervendor'></select><button id='vendorButton'>Add</button></div>
 	<div id="vendorDialog">
-		<input type="text" id="newTesterVendor">	
+		<input type="text" id="newTesterVendor"></input>	
 	</div>
 	<div id="configDialog">
-	    <label th:each="item:${categoryCheckBox}">
-	      <input class="form-check-input testerCategory" type="checkbox" name="selectedCategory" th:id="${item.key}" th:value="${item.key}" th:text="${item.value}"/>
-	    </label>
+		<div class="checkbox-inline" th:each="item : ${categoryCheckBox}">
+		    <label>
+		    	<input type="checkbox" class="testerCategory" name="selectedCategory" th:value="${item.key}" th:text="${item.value}" th:id="'categoryCheck' + ${item.key}"></input>
+		    </label>
+		</div>
 	</div>
+	
 	<button id="addNewTester">Add New Product</button>
+	<button id="editCategoryButton">Edit Category</button>
 	<div id="newTesterDialog">
-		Tester Name<input type="text" id="newTesterText">
+		Tester Name<input type="text" id="newTesterText"></input>
+	</div>
+	<div id="categoryEditDialog">
+		<button id="addnewCategory">Add Category</button>
+		<table id="categoryEidtTable"></table>
+		<div id="newCategoryDialog">
+			New Category<input type="text" id="newCategoryText">
+		</div>
 	</div>
 	<div id="main"></div>
 </body>
