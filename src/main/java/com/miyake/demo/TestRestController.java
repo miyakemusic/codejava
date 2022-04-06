@@ -324,6 +324,10 @@ public class TestRestController {
     	if (testerJson.id != null) {
 	    	testerCategoryRelationRepository.deleteByTester(testerJson.id);
 	
+	    	TesterEntity testerEntity = this.testerRepository.getById(testerJson.id);
+	    	testerEntity.setProduct_name(testerJson.name);
+	    	this.testerRepository.save(testerEntity);
+	    	
 	    	for (Long category : testerJson.category) {
 	    		TesterCategoryRelationEntity entity = new TesterCategoryRelationEntity();
 	    		entity.setCategory(category);

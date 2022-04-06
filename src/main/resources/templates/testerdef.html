@@ -88,6 +88,7 @@
 				var cls = $(this).attr('class');
 				selectedData = table.row( $(this).parents('tr') ).data();
 				if (cls == 'btn-edit') {
+					$('#editTesterName').val(selectedData.name);
 					$(".testerCategory").each(function(i,e){
 						$('#' + e.id).prop('checked', false);
 					});
@@ -160,6 +161,8 @@
 							obj.category.push(e.id.replace('categoryCheck', ''));
 						}
 					});
+					obj.name = $('#editTesterName').val();
+					
 					var json = JSON.stringify(obj);
 					$.ajax({
 						type: "POST",
@@ -220,28 +223,14 @@
 			width: 400,
 			height: 500,
 			buttons: {
-				"OK": function() {							
+				"Close": function() {							
 					$(this).dialog("close");
 				
 					var obj = new Object();
 					obj.name = $('#newTesterText').val();
 					obj.vendorid = $('#testervendor').val();
 					var json = JSON.stringify(obj);
-					$.ajax({
-						type: "POST",
-						url: "/",
-						data: json,
-						contentType: "application/json",
-						dataType : "text"
-					}).done(function(data){
-						createTable();
-					}).fail(function(XMLHttpRequest, status, e){
-						alert(e);
-					});	
 
-				},
-				"Cancel": function() {
-					$(this).dialog("close");
 				}
 			}
 		});		
@@ -267,10 +256,45 @@
 				{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
 			]
 		});	
+		var selectedCategory;
+		$("#categoryElementEditDialog").dialog({
+			modal:true,
+			autoOpen: false,
+			title: "Edit Category Name",
+			width: 400,
+			height: 200,
+			buttons: {
+				"OK": function() {							
+					$(this).dialog("close");
+				
+					var obj = new Object();
+					obj.id = selectedCategory.id;
+					obj.category_name = $('#categoryNameEdit').val();
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/TesterCategoryEntity",
+						data: json,
+						contentType: "application/json",
+						dataType : "json"
+					}).done(function(data){
+						categoryTable.ajax.reload();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});	
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});			
+		
 		$('#categoryEidtTable tbody').on( 'click', 'button', function () {
 			var cls = $(this).attr('class');
-			var selectedCategory = table.row( $(this).parents('tr') ).data();
+			selectedCategory = categoryTable.row( $(this).parents('tr') ).data();
 			if (cls == 'btn-edit') {
+				$('#categoryNameEdit').val(selectedCategory.category_name);
+				$("#categoryElementEditDialog").dialog('open');
 			}
 			else if ('btn-delete') {
 			
@@ -291,6 +315,7 @@
 					$(this).dialog("close");
 				
 					var obj = new Object();
+					obj.id = selectedCategory.id;
 					obj.category_name = $('#newCategoryText').val();
 					var json = JSON.stringify(obj);
 					$.ajax({
@@ -324,6 +349,7 @@
 		<input type="text" id="newTesterVendor"></input>	
 	</div>
 	<div id="configDialog">
+		<input type="text" id=editTesterName>
 		<div class="checkbox-inline" th:each="item : ${categoryCheckBox}">
 		    <label>
 		    	<input type="checkbox" class="testerCategory" name="selectedCategory" th:value="${item.key}" th:text="${item.value}" th:id="'categoryCheck' + ${item.key}"></input>
@@ -342,6 +368,9 @@
 		<div id="newCategoryDialog">
 			New Category<input type="text" id="newCategoryText">
 		</div>
+	</div>
+	<div id="categoryElementEditDialog">
+		<input type="text" id="categoryNameEdit">
 	</div>
 	<div id="main"></div>
 </body>
