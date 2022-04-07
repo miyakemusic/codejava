@@ -931,7 +931,12 @@ public class TestRestController {
     		json.setTesterName(tester.getProduct_name());
     		json.setMyTesterName(e.getName());
     		json.setStatus(e.getOnline() ? "Online" : "-");
-    		//json.setCategory(tester.getCategoryEntity().getCategory_name());
+    		List<TesterCategoryRelationEntity> categories = this.testerCategoryRelationRepository.findByTester(tester.getId());
+    		String categoryText = "";    		for (TesterCategoryRelationEntity c : categories) {
+    			TesterCategoryEntity category = testerCategoryRepository.getById(c.getCategory());
+    			categoryText += category.getCategory_name() + "/";
+    		}
+    		json.setCategory(categoryText.substring(0, categoryText.length()-1));
     		ret.add(json);
     	}
     	return ret;

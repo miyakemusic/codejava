@@ -206,7 +206,8 @@
 						contentType: "application/json",
 						dataType : "text"
 					}).done(function(data){
-						createTable();
+						//createTable();
+						table.ajax.reload();
 					}).fail(function(XMLHttpRequest, status, e){
 						alert(e);
 					});										
@@ -220,7 +221,7 @@
 			modal:true,
 			autoOpen: false,
 			title: "Category Editor",
-			width: 400,
+			width: 800,
 			height: 500,
 			buttons: {
 				"Close": function() {							
@@ -239,6 +240,7 @@
 			$("#newTesterDialog").dialog('open');
 		});
 		
+		$('#categoryEidtTable').css('width', '100%');
 		var categoryTable = $('#categoryEidtTable').DataTable({
 			"sAjaxSource": 'TesterCategoryEntityS',
 			"sAjaxDataProp": "",
@@ -251,7 +253,8 @@
 			        ],
 			"aoColumns": [
 				{ "sTitle": "ID", "mData": "id" },
-				{ "sTitle": "Category", "mData": "category_name" },
+				{ "sTitle": "Category Name", "mData": "category_name" },
+				{ "sTitle": "Category Full Name", "mData": "fullname" },
 				{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
 				{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
 			]
@@ -261,8 +264,8 @@
 			modal:true,
 			autoOpen: false,
 			title: "Edit Category Name",
-			width: 400,
-			height: 200,
+			width: 1000,
+			height: 600,
 			buttons: {
 				"OK": function() {							
 					$(this).dialog("close");
@@ -270,6 +273,7 @@
 					var obj = new Object();
 					obj.id = selectedCategory.id;
 					obj.category_name = $('#categoryNameEdit').val();
+					obj.fullname = $('#categoryNameEditFull').val();
 					var json = JSON.stringify(obj);
 					$.ajax({
 						type: "POST",
@@ -294,6 +298,7 @@
 			selectedCategory = categoryTable.row( $(this).parents('tr') ).data();
 			if (cls == 'btn-edit') {
 				$('#categoryNameEdit').val(selectedCategory.category_name);
+				$('#categoryNameEditFull').val(selectedCategory.fullname);
 				$("#categoryElementEditDialog").dialog('open');
 			}
 			else if ('btn-delete') {
@@ -308,8 +313,8 @@
 			modal:true,
 			autoOpen: false,
 			title: "Category Editor",
-			width: 400,
-			height: 200,
+			width: 800,
+			height: 500,
 			buttons: {
 				"OK": function() {							
 					$(this).dialog("close");
@@ -317,6 +322,7 @@
 					var obj = new Object();
 					obj.id = selectedCategory.id;
 					obj.category_name = $('#newCategoryText').val();
+					obj.fullname = $('#newCategoryFullText').val();
 					var json = JSON.stringify(obj);
 					$.ajax({
 						type: "POST",
@@ -366,11 +372,13 @@
 		<button id="addnewCategory">Add Category</button>
 		<table id="categoryEidtTable"></table>
 		<div id="newCategoryDialog">
-			New Category<input type="text" id="newCategoryText">
+			<div>>New Category<input type="text" id="newCategoryText"></div>
+			<div>New Category Full Name<input type="text" id="newCategoryFullText"></div>
 		</div>
 	</div>
 	<div id="categoryElementEditDialog">
-		<input type="text" id="categoryNameEdit">
+		<div>Category Name<input type="text" id="categoryNameEdit"></div>
+		<div>Full Name<input type="text" id="categoryNameEditFull"></div>
 	</div>
 	<div id="main"></div>
 </body>

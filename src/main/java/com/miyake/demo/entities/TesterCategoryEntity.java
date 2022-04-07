@@ -21,6 +21,8 @@ public class TesterCategoryEntity {
 	
 	private String category_name;
 	
+	private String fullname;
+	
 	@Override
 	public String toString() {
 		return this.category_name;
