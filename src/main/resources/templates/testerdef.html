@@ -12,6 +12,8 @@
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
     <script type="text/javascript">
     $(function() {
+  //  	$('.border').css('border', 'solid');
+    	
 		$.ajax({
 			type: "GET",
 			url: "header",
@@ -77,8 +79,10 @@
 				        ],
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
-					{ "sTitle": "Product Name", "mData": "name" },
 					{ "sTitle": "Category", "mData": "categoryText" },
+					{ "sTitle": "Product Name", "mData": "name" },
+					{ "sTitle": "Description", "mData": "description" },
+					{ "sTitle": "Type", "mData": "typeText" },
 					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
 					{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
 				]
@@ -89,6 +93,9 @@
 				selectedData = table.row( $(this).parents('tr') ).data();
 				if (cls == 'btn-edit') {
 					$('#editTesterName').val(selectedData.name);
+					$('#editTesterDescription').val(selectedData.description);
+					$('#productTypeList').val(selectedData.type);
+
 					$(".testerCategory").each(function(i,e){
 						$('#' + e.id).prop('checked', false);
 					});
@@ -147,23 +154,25 @@
 			modal:true,
 			autoOpen: false,
 			title: "Config",
-			width: 800,
-			height: 400,
+			width: 900,
+			height: 600,
 			buttons: {
 				"OK": function() {							
 					$(this).dialog("close");
 					
-					var obj = new Object();
-					obj.id = selectedData.id;
-					obj.category = [];
+					//var obj = new Object();
+					//obj.id = selectedData.id;
+					selectedData.category = [];
 					$(".testerCategory").each(function(i,e){
 						if ($('#' + e.id).prop('checked')) {
-							obj.category.push(e.id.replace('categoryCheck', ''));
+							selectedData.category.push(e.id.replace('categoryCheck', ''));
 						}
 					});
-					obj.name = $('#editTesterName').val();
+					selectedData.name = $('#editTesterName').val();
+					selectedData.description = $('#editTesterDescription').val();
+					selectedData.type = $('#productTypeList').val();
 					
-					var json = JSON.stringify(obj);
+					var json = JSON.stringify(selectedData);
 					$.ajax({
 						type: "POST",
 						url: "/testerJson",
@@ -197,7 +206,10 @@
 					
 					var obj = new Object();
 					obj.name = $('#newTesterText').val();
+					obj.description = $('#newTesterDescription').val();
 					obj.vendorid = $('#testervendor').val();
+					obj.type = $('#newTesterProductTypeList').val();
+					
 					var json = JSON.stringify(obj);
 					$.ajax({
 						type: "POST",
@@ -345,28 +357,55 @@
 		$('#addnewCategory').click(function(){
 			$("#newCategoryDialog").dialog('open');
 		});
+		
+		function updateProductList() {
+			$.ajax({
+				type: "GET",
+				url: "/productTypeList",
+				dataType : "json"
+			})
+			.done(function(data){ 
+				for (var o of data) {
+					$('#productTypeList').append($('<option>').html(o.name).val(o.id));
+					$('#newTesterProductTypeList').append($('<option>').html(o.name).val(o.id));
+				}
+				
+			})
+			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+				alert(errorThrown);
+			});				
+		}
+
+		updateProductList();
+		
     });
     </script>
 </head>
 <body>
 	<div id='headerDiv'></div>
-	<div>Manufacturer<select id='testervendor'></select><button id='vendorButton'>Add</button></div>
+	<div class="border">Manufacturer<select id='testervendor'></select><button id='vendorButton'>Add Tester Maker</button></div>
 	<div id="vendorDialog">
 		<input type="text" id="newTesterVendor"></input>	
 	</div>
 	<div id="configDialog">
-		<input type="text" id=editTesterName>
+		<div>Tester Name:<input type="text" id="editTesterName"></div>
+		<div>Description:<input type="text" id="editTesterDescription"></div>
+		<div>Product Type<select id="productTypeList"></select></div>
+		<div class="border">
 		<div class="checkbox-inline" th:each="item : ${categoryCheckBox}">
 		    <label>
 		    	<input type="checkbox" class="testerCategory" name="selectedCategory" th:value="${item.key}" th:text="${item.value}" th:id="'categoryCheck' + ${item.key}"></input>
 		    </label>
+		</div>
 		</div>
 	</div>
 	
 	<button id="addNewTester">Add New Product</button>
 	<button id="editCategoryButton">Edit Category</button>
 	<div id="newTesterDialog">
-		Tester Name<input type="text" id="newTesterText"></input>
+		<div>Tester Name<input type="text" id="newTesterText"></input></div>
+		<div>Description<input type="text" id="newTesterDescription"></input></div>
+		<div>Product Type<select id="newTesterProductTypeList"></select></div>
 	</div>
 	<div id="categoryEditDialog">
 		<button id="addnewCategory">Add Category</button>

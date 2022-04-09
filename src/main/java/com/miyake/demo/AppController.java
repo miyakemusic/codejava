@@ -170,7 +170,7 @@ public class AppController {
     public String tester(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
 	    Map<Long, String> checkBoxCategory = new LinkedHashMap<>();
 	    for (TesterCategoryEntity e : this.testerCategoryRepository.findAll()) {
-	    	checkBoxCategory.put(e.getId(), e.getCategory_name());
+	    	checkBoxCategory.put(e.getId(), e.getFullname() + " (" + e.getCategory_name() + ")");
 		    model.addAttribute("categoryCheckBox", checkBoxCategory);	    	
 	    }
 

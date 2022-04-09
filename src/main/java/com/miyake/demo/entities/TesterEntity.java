@@ -3,6 +3,8 @@ package com.miyake.demo.entities;
 import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -31,6 +33,11 @@ public class TesterEntity {
 	
 	private String product_name;
 
+	private String description;
+	
+    @Enumerated(EnumType.ORDINAL)
+    private ProductType producttype;
+    
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "category", insertable = false, updatable = false)
 //    private TesterCategoryEntity categoryEntity;

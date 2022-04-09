@@ -38,6 +38,7 @@ import com.miyake.demo.entities.PortTestEntity;
 import com.miyake.demo.entities.PortTestEntitySimple;
 import com.miyake.demo.entities.PortTestTemplateBindEntity;
 import com.miyake.demo.entities.PortTestTemplateEntity;
+import com.miyake.demo.entities.ProductType;
 import com.miyake.demo.entities.ProjectEntity;
 import com.miyake.demo.entities.ProjectEntitySimple;
 import com.miyake.demo.entities.TestItemCategoryEntity;
@@ -56,6 +57,7 @@ import com.miyake.demo.entities.UserGroupEntity;
 import com.miyake.demo.jsonobject.DiagramItem;
 import com.miyake.demo.jsonobject.DiagramItemContainer;
 import com.miyake.demo.jsonobject.DiagramItemContainers;
+import com.miyake.demo.jsonobject.IdValue;
 import com.miyake.demo.jsonobject.LinkContainer;
 import com.miyake.demo.jsonobject.MyTesterJson;
 import com.miyake.demo.jsonobject.MyTesterRegistration;
@@ -307,7 +309,7 @@ public class TestRestController {
     		if (!categoryText.isEmpty()) {
     			categoryText = categoryText.substring(0, categoryText.length()-1);
     		}
-    		ret.add(new TesterJson(e.getId(), e.getProduct_name(), category, categoryText));
+    		ret.add(new TesterJson(e.getVendor(), e.getId(), e.getProduct_name(), e.getDescription(), e.getProducttype().ordinal(), e.getProducttype().name(), category, categoryText));
     	}
     	
     	return ret;
@@ -325,8 +327,7 @@ public class TestRestController {
 	    	testerCategoryRelationRepository.deleteByTester(testerJson.id);
 	
 	    	TesterEntity testerEntity = this.testerRepository.getById(testerJson.id);
-	    	testerEntity.setProduct_name(testerJson.name);
-	    	this.testerRepository.save(testerEntity);
+	    	saveTesterEntity(testerJson, testerEntity);
 	    	
 	    	for (Long category : testerJson.category) {
 	    		TesterCategoryRelationEntity entity = new TesterCategoryRelationEntity();
@@ -337,12 +338,23 @@ public class TestRestController {
     	}
     	else {
     		TesterEntity e = new TesterEntity();
-    		e.setProduct_name(testerJson.name);
-    		e.setVendor(testerJson.vendorid);
-    		this.testerRepository.save(e);
+    		saveTesterEntity(testerJson, e);
+//    		e.setProduct_name(testerJson.name);
+//    		e.setVendor(testerJson.vendorid);
+//    		e.setDescription(testerJson.description);
+//    		e.setProducttype(ProductType.values()[testerJson.type]);
+//    		this.testerRepository.save(e);
     	}
     	return "OK";
     }
+
+	private void saveTesterEntity(TesterJson testerJson, TesterEntity testerEntity) {
+		testerEntity.setVendor(testerJson.vendorid);
+		testerEntity.setProduct_name(testerJson.name);
+		testerEntity.setDescription(testerJson.description);
+		testerEntity.setProducttype(ProductType.values()[testerJson.type]);
+		this.testerRepository.save(testerEntity);
+	}
     
     @GetMapping("/TesterCategoryEntityS")
     public List<TesterCategoryEntity> getAllTesterCategories() {
@@ -936,7 +948,9 @@ public class TestRestController {
     			TesterCategoryEntity category = testerCategoryRepository.getById(c.getCategory());
     			categoryText += category.getCategory_name() + "/";
     		}
-    		json.setCategory(categoryText.substring(0, categoryText.length()-1));
+    		if (categoryText.length() > 0) {
+    			json.setCategory(categoryText.substring(0, categoryText.length()-1));
+    		}
     		ret.add(json);
     	}
     	return ret;
@@ -1390,5 +1404,15 @@ public class TestRestController {
 	public TesterVendorEntity testerVendor(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody TesterVendorEntity entity) {
 		return this.testerVendorRepository.save(entity);
 	}
+	
+	@GetMapping("/productTypeList")
+	public List<IdValue> productTypeList() {
+		List<IdValue> ret = new ArrayList<>();
+		for (ProductType p : ProductType.values()) {
+			ret.add(new IdValue(p.ordinal(), p.name()));
+		}
+		return ret;
+	}
+	
 
 }
