@@ -61,6 +61,7 @@ import com.miyake.demo.jsonobject.IdValue;
 import com.miyake.demo.jsonobject.LinkContainer;
 import com.miyake.demo.jsonobject.MyTesterJson;
 import com.miyake.demo.jsonobject.MyTesterRegistration;
+import com.miyake.demo.jsonobject.ParentTester;
 import com.miyake.demo.jsonobject.PortTemplate;
 import com.miyake.demo.jsonobject.PortTestJson;
 import com.miyake.demo.jsonobject.PrimitiveRect;
@@ -312,6 +313,15 @@ public class TestRestController {
     		ret.add(new TesterJson(e.getVendor(), e.getId(), e.getProduct_name(), e.getDescription(), e.getProducttype().ordinal(), e.getProducttype().name(), category, categoryText));
     	}
     	
+    	return ret;
+    }
+    
+    @GetMapping("/parentTesterJson")
+    public List<ParentTester> parentTester(@RequestParam(value = "vendor", required=true) Long vendor) {
+    	List<ParentTester> ret = new ArrayList<>();
+    	for (TesterEntity e : this.testerRepository.findByVendor(vendor)) {
+    		ret.add(new ParentTester(e.getId(), e.getProduct_name(), e.getDescription(), false));
+    	}
     	return ret;
     }
     
@@ -1413,6 +1423,5 @@ public class TestRestController {
 		}
 		return ret;
 	}
-	
 
 }

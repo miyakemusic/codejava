@@ -9,7 +9,9 @@
     <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
+	<link rel="stylesheet" type="text/css" href="/webjars/datatables-tabletools/2.2.4/css/dataTables.tableTools.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript" th:src="@{/webjars/datatables-tabletools/2.2.4/js/dataTables.tableTools.js}"></script>
     <script type="text/javascript">
     $(function() {
   //  	$('.border').css('border', 'solid');
@@ -378,6 +380,124 @@
 
 		updateProductList();
 		
+		
+		$("#parentEditDiv").dialog({
+			modal:true,
+			autoOpen: false,
+			title: "Parent Selector",
+			width: 800,
+			height: 500,
+			buttons: {
+				"OK": function() {							
+					$(this).dialog("close");
+				
+					var obj = new Object();
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/",
+						data: json,
+						contentType: "application/json",
+						dataType : "json"
+					}).done(function(data){
+						categoryTable.ajax.reload();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});	
+
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});	
+		
+		var parentTable;
+		$('#editParents').click(function(){
+			$("#parentEditDiv").dialog('open');
+			if (parentTable == null) {
+				parentTable = $('#parentEditTable').DataTable({
+					"sAjaxSource": 'parentTesterJson?vendor=' + $('#testervendor').val(),
+					"sAjaxDataProp": "",
+					"columnDefs": [
+					            {
+					                "targets": [ 0 ],
+					                "visible": false,
+					                "searchable": false
+					            }
+					        ],
+					"aoColumns": [
+						{ "sTitle": "ID", "mData": "id" },
+						{ "sTitle": "Product Name", "mData": "name" },
+						{ "sTitle": "Description", "mData": "description" },
+						{ "sTitle": "Check", "mData": "selected" },
+//						{ "sTitle": "Select", "mData": null, "sDefaultContent": '<input type="checkbox" class="parent-check">' },
+					],
+					fnCreatedRow : function(nRow, aData, iDataIndex) {
+						// IDに行番号を設定
+						// 内部データを加工する場合はここで行う。
+						aData.id = iDataIndex;
+
+						// 5列目のtd要素をチェックボックスとして選択
+						// （bVisibleをfalseにされた列はnRowには含まれない？）
+						var element = $("td:eq(2)", nRow);
+
+						// チェックボックを表示する列のテキストを消去
+						element.text("");
+
+						// チェックボックスを生成
+						var checkbox = $("<input>")
+						.attr("type", "checkbox")
+
+						// idに行番号をつける
+						.attr("id", "check" + iDataIndex)
+
+						//classをつける
+						.attr("class", "checkbox")
+
+						// check状態を設定
+						// aDataにはaoColumnsのmData要素で指定した名前
+						.attr("checked", aData.selected)
+
+						// チェックボックスが変更されたときのイベントを登録
+						.change(function() {
+						// 内部データをチェックされた値に更新
+						aData.check = $(this).is(":checked").toString();
+						});
+
+						// 要素にチェックボックスを追加
+						element.append(checkbox);
+						}
+				});	
+			}
+			else {
+				parentTable.ajax.reload();
+			}
+		});
+		$('#parentEditSelectAll').click(function(){
+			parentTable.rows({"search":"applied" }).every( function () {
+			    var data = this.data();
+			    data.selected = true;
+			});
+			
+			var newData = parentTable.rows().data();
+			parentTable.clear().rows.add(newData).draw(); 
+		    parentTable.draw();
+    
+		});
+		$('#parentEditClearAll').click(function(){
+			parentTable.rows({"search":"applied" }).every( function () {
+			    var data = this.data();
+			    data.selected = false;
+			});
+			
+			var newData = parentTable.rows().data();
+			parentTable.clear().rows.add(newData).draw(); 
+		    parentTable.draw();
+    
+		});		
+		
+		
     });
     </script>
 </head>
@@ -390,7 +510,7 @@
 	<div id="configDialog">
 		<div>Tester Name:<input type="text" id="editTesterName"></div>
 		<div>Description:<input type="text" id="editTesterDescription"></div>
-		<div>Product Type<select id="productTypeList"></select></div>
+		<div>Product Type<select id="productTypeList"></select><label id="myParentTesters"></label><button id="editParents">Edit Parents</button></div>
 		<div class="border">
 		<div class="checkbox-inline" th:each="item : ${categoryCheckBox}">
 		    <label>
@@ -418,6 +538,10 @@
 	<div id="categoryElementEditDialog">
 		<div>Category Name<input type="text" id="categoryNameEdit"></div>
 		<div>Full Name<input type="text" id="categoryNameEditFull"></div>
+	</div>
+	<div id="parentEditDiv">
+		<button id="parentEditSelectAll">Select All</button><button id="parentEditClearAll">Clear All</button>
+		<table id="parentEditTable"></table>
 	</div>
 	<div id="main"></div>
 </body>
