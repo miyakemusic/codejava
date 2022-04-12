@@ -10,6 +10,8 @@ public class MyTesterJson {
 	private String vendor;
 	private String myTesterName;
 	private String testerName;
+	private Long parentid;
+	private String parentText;
 	private String status;
 	
 	public MyTesterJson() {}

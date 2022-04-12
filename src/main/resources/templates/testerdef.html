@@ -70,6 +70,7 @@
 			$('#main').append('<table id="testersTable"></table>');
 			
 			table = $('#testersTable').DataTable({
+				"iDisplayLength": 50,
 				"sAjaxSource": 'testerListJson?vendor=' + $('#testervendor').val(),
 				"sAjaxDataProp": "",
 				"columnDefs": [
@@ -256,6 +257,7 @@
 		
 		$('#categoryEidtTable').css('width', '100%');
 		var categoryTable = $('#categoryEidtTable').DataTable({
+			"iDisplayLength": 50,
 			"sAjaxSource": 'TesterCategoryEntityS',
 			"sAjaxDataProp": "",
 			"columnDefs": [
@@ -380,27 +382,38 @@
 
 		updateProductList();
 		
-		
+		var parentTable;
 		$("#parentEditDiv").dialog({
 			modal:true,
 			autoOpen: false,
 			title: "Parent Selector",
-			width: 800,
-			height: 500,
+			width: 1200,
+			height: 800,
 			buttons: {
 				"OK": function() {							
 					$(this).dialog("close");
 				
 					var obj = new Object();
+					
+					obj.id = selectedData.id;
+					var data = parentTable.rows().data();
+					obj.selected= [];
+					for (var i in data) {
+						var d = data[i];
+						if (d.selected) {
+							obj.selected.push(d.id);
+						}
+					}
+					
 					var json = JSON.stringify(obj);
 					$.ajax({
 						type: "POST",
-						url: "/",
+						url: "/parentTesterJson",
 						data: json,
 						contentType: "application/json",
-						dataType : "json"
+						dataType : "text"
 					}).done(function(data){
-						categoryTable.ajax.reload();
+						//categoryTable.ajax.reload();
 					}).fail(function(XMLHttpRequest, status, e){
 						alert(e);
 					});	
@@ -412,12 +425,12 @@
 			}
 		});	
 		
-		var parentTable;
 		$('#editParents').click(function(){
 			$("#parentEditDiv").dialog('open');
 			if (parentTable == null) {
 				parentTable = $('#parentEditTable').DataTable({
-					"sAjaxSource": 'parentTesterJson?vendor=' + $('#testervendor').val(),
+					"iDisplayLength": 50,
+					"sAjaxSource": 'parentTesterJson?vendor=' + $('#testervendor').val() + '&tester=' + selectedData.id,
 					"sAjaxDataProp": "",
 					"columnDefs": [
 					            {
@@ -434,43 +447,23 @@
 //						{ "sTitle": "Select", "mData": null, "sDefaultContent": '<input type="checkbox" class="parent-check">' },
 					],
 					fnCreatedRow : function(nRow, aData, iDataIndex) {
-						// IDに行番号を設定
-						// 内部データを加工する場合はここで行う。
-						aData.id = iDataIndex;
-
-						// 5列目のtd要素をチェックボックスとして選択
-						// （bVisibleをfalseにされた列はnRowには含まれない？）
 						var element = $("td:eq(2)", nRow);
-
-						// チェックボックを表示する列のテキストを消去
 						element.text("");
-
-						// チェックボックスを生成
 						var checkbox = $("<input>")
 						.attr("type", "checkbox")
-
-						// idに行番号をつける
 						.attr("id", "check" + iDataIndex)
-
-						//classをつける
 						.attr("class", "checkbox")
-
-						// check状態を設定
-						// aDataにはaoColumnsのmData要素で指定した名前
 						.attr("checked", aData.selected)
-
-						// チェックボックスが変更されたときのイベントを登録
 						.change(function() {
-						// 内部データをチェックされた値に更新
-						aData.check = $(this).is(":checked").toString();
+							aData.check = $(this).is(":checked").toString();
 						});
 
-						// 要素にチェックボックスを追加
 						element.append(checkbox);
-						}
+					}
 				});	
 			}
 			else {
+				parentTable.ajax.url('parentTesterJson?vendor=' + $('#testervendor').val() + '&tester=' + selectedData.id);
 				parentTable.ajax.reload();
 			}
 		});

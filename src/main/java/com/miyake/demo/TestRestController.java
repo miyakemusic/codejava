@@ -50,6 +50,7 @@ import com.miyake.demo.entities.TesterCapabilityEntitySimple;
 import com.miyake.demo.entities.TesterCategoryEntity;
 import com.miyake.demo.entities.TesterCategoryRelationEntity;
 import com.miyake.demo.entities.TesterEntity;
+import com.miyake.demo.entities.TesterOptionRelationEntity;
 import com.miyake.demo.entities.TesterVendorEntity;
 import com.miyake.demo.entities.EquipmentPresentationEntity;
 import com.miyake.demo.entities.UserEntity;
@@ -62,6 +63,7 @@ import com.miyake.demo.jsonobject.LinkContainer;
 import com.miyake.demo.jsonobject.MyTesterJson;
 import com.miyake.demo.jsonobject.MyTesterRegistration;
 import com.miyake.demo.jsonobject.ParentTester;
+import com.miyake.demo.jsonobject.ParentTestersJson;
 import com.miyake.demo.jsonobject.PortTemplate;
 import com.miyake.demo.jsonobject.PortTestJson;
 import com.miyake.demo.jsonobject.PrimitiveRect;
@@ -97,6 +99,7 @@ import com.miyake.demo.repository.TesterCapabilityRepository;
 import com.miyake.demo.repository.TesterCapabilityRepositorySimple;
 import com.miyake.demo.repository.TesterCategoryRelationRepository;
 import com.miyake.demo.repository.TesterCategoryRepository;
+import com.miyake.demo.repository.TesterOptionRelationRepository;
 import com.miyake.demo.repository.TesterRepository;
 import com.miyake.demo.repository.TesterVendorRepository;
 import com.miyake.demo.repository.EquipmentPresentationRepository;
@@ -189,6 +192,9 @@ public class TestRestController {
     
     @Autowired
     private TesterCategoryRelationRepository testerCategoryRelationRepository;
+    
+    @Autowired
+    private TesterOptionRelationRepository testerOptionRelationRepository;
     
     @Autowired
     private MyMessageHandler messageHandler;
@@ -317,12 +323,30 @@ public class TestRestController {
     }
     
     @GetMapping("/parentTesterJson")
-    public List<ParentTester> parentTester(@RequestParam(value = "vendor", required=true) Long vendor) {
+    public List<ParentTester> parentTester(@RequestParam(value = "tester", required=true) Long tester, @RequestParam(value = "vendor", required=true) Long vendor) {
     	List<ParentTester> ret = new ArrayList<>();
+    	    	
+    	List<TesterOptionRelationEntity> parents = this.testerOptionRelationRepository.findByChild(tester);
+    	
+    	List<Long> ps = new ArrayList<>();
+    	for (TesterOptionRelationEntity p : parents) {
+    		ps.add(p.getParent());
+    	}
     	for (TesterEntity e : this.testerRepository.findByVendor(vendor)) {
-    		ret.add(new ParentTester(e.getId(), e.getProduct_name(), e.getDescription(), false));
+    		ret.add(new ParentTester(e.getId(), e.getProduct_name(), e.getDescription(), ps.contains(e.getId())));
     	}
     	return ret;
+    }
+    
+    @PostMapping("/parentTesterJson")
+    public String parentTester(@RequestBody ParentTestersJson parents) {
+    	this.testerOptionRelationRepository.deleteByChild(parents.id);
+    	for (Long parent : parents.selected) {
+    		TesterOptionRelationEntity relation = new TesterOptionRelationEntity(parent, parents.id);
+    		this.testerOptionRelationRepository.save(relation);
+    	}
+
+    	return "OK";
     }
     
     @PostMapping("/TesterEntity")
@@ -349,11 +373,6 @@ public class TestRestController {
     	else {
     		TesterEntity e = new TesterEntity();
     		saveTesterEntity(testerJson, e);
-//    		e.setProduct_name(testerJson.name);
-//    		e.setVendor(testerJson.vendorid);
-//    		e.setDescription(testerJson.description);
-//    		e.setProducttype(ProductType.values()[testerJson.type]);
-//    		this.testerRepository.save(e);
     	}
     	return "OK";
     }
