@@ -29,6 +29,7 @@ import com.miyake.demo.entities.EquipmentCategoryEntity;
 import com.miyake.demo.entities.EquipmentEntity;
 import com.miyake.demo.entities.EquipmentEntitySimple;
 import com.miyake.demo.entities.MyTesterEntity;
+import com.miyake.demo.entities.MyTesterRelationEntity;
 import com.miyake.demo.entities.PassFailEnum;
 import com.miyake.demo.entities.PortDirectionEntity;
 import com.miyake.demo.entities.PortEntity;
@@ -80,6 +81,7 @@ import com.miyake.demo.repository.ConnectorRepository;
 import com.miyake.demo.repository.EquipmentCategoryRepository;
 import com.miyake.demo.repository.EquipmentRepository;
 import com.miyake.demo.repository.EquipmentRepositorySimple;
+import com.miyake.demo.repository.MyTesterRelationRepository;
 import com.miyake.demo.repository.MyTesterRepository;
 import com.miyake.demo.repository.PortDirectionRepository;
 import com.miyake.demo.repository.PortPresentationRepository;
@@ -195,6 +197,9 @@ public class TestRestController {
     
     @Autowired
     private TesterOptionRelationRepository testerOptionRelationRepository;
+    
+    @Autowired
+    private MyTesterRelationRepository myTesterRelationRepository;
     
     @Autowired
     private MyMessageHandler messageHandler;
@@ -968,10 +973,14 @@ public class TestRestController {
     		TesterEntity tester = this.testerRepository.getById(e.getTester());
     		MyTesterJson json = new MyTesterJson();
     		json.setId(e.getId());
+    		json.setStandalone(tester.getProducttype().compareTo(ProductType.Standalone) == 0);
     		json.setVendor(tester.getVendorEntity().getVendorname());
     		json.setTesterName(tester.getProduct_name());
     		json.setMyTesterName(e.getName());
+    		json.setParentCandidates(getCandidates(e, tester, mytesters));
     		json.setStatus(e.getOnline() ? "Online" : "-");
+    		json.setParentid(e.getParent());
+    		json.setDescription(tester.getDescription());
     		List<TesterCategoryRelationEntity> categories = this.testerCategoryRelationRepository.findByTester(tester.getId());
     		String categoryText = "";    		for (TesterCategoryRelationEntity c : categories) {
     			TesterCategoryEntity category = testerCategoryRepository.getById(c.getCategory());
@@ -980,12 +989,36 @@ public class TestRestController {
     		if (categoryText.length() > 0) {
     			json.setCategory(categoryText.substring(0, categoryText.length()-1));
     		}
+    		
     		ret.add(json);
     	}
     	return ret;
     }
-    
-    @PostMapping("/mytester")
+
+
+	private List<Long> getCandidates(MyTesterEntity e, TesterEntity tester, List<MyTesterEntity> mytesters) {
+		List<Long> usedParents = new ArrayList<>();
+		for (MyTesterEntity mine : mytesters) {
+			if (mine.getParent() != null && mine.getParent() > 0) {
+				usedParents.add(mine.getParent());
+			}
+		}
+		List<Long> ret = new ArrayList<>();
+		List<TesterOptionRelationEntity> parents = this.testerOptionRelationRepository.findByChild(tester.getId());
+		for (TesterOptionRelationEntity p : parents) {
+			for (MyTesterEntity mine : mytesters) {
+				
+				if ((p.getParent() == mine.getTester()) /*&& !usedParents.contains(mine.getId())*/) {
+					if (!usedParents.contains(mine.getId())) {
+						ret.add(mine.getId());
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
+	@PostMapping("/mytester")
     public MyTesterEntity saveMyTester(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody MyTesterEntity entity) {
       	UserEntity e = userRepository.getById(userDetails.getUser().getId());
     	entity.setUsergroup(e.getUsergroup());
@@ -1006,8 +1039,7 @@ public class TestRestController {
     @GetMapping("/mytesters/candidates")
     public Map<Long, List<TesterEntity>> getCandidateTester(@AuthenticationPrincipal CustomUserDetails userDetails, 
     		@RequestParam(value = "portid", required=true) Long portid) {
-    	
-    	
+
     	CandidateCalculator calculator = new CandidateCalculator(portid) {
 
 			@Override
@@ -1027,6 +1059,21 @@ public class TestRestController {
     		
     	};
     	return calculator.getMap();
+    }
+    
+    @PostMapping("/setParent")
+    public String setParent(@RequestBody MyTesterJson myTester) {
+    	//MyTesterRelationEntity e = this.myTesterRelationRepository.getById(myTester.getId());
+    	MyTesterEntity e = this.myTesterRepository.getById(myTester.getId());
+    	e.setParent(myTester.getParentid());
+    	this.myTesterRepository.save(e);
+//    	Long parent = myTester.getParentid();
+//    	Long child = myTester.getId();
+//    	MyTesterRelationEntity e = new MyTesterRelationEntity();
+//    	e.setChild(child);
+//    	e.setParent(parent);
+//    	myTesterRelationRepository.save(e);
+    	return "OK";
     }
     
     @GetMapping("/UserGroupEntityS")

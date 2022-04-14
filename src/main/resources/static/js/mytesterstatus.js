@@ -4,6 +4,7 @@ class MyTesterStatus {
 		var tableid = this.thisdiv + "_table";
 		$('#' + div).append('<div id="'+ this.thisdiv + '"><table id="'+ tableid + '"></table></div>');
 		
+		var me = this;
 		this.table = $('#' + tableid).DataTable({
 			"iDisplayLength": 50,
 			"sAjaxSource": 'mytestersforjs',
@@ -15,10 +16,10 @@ class MyTesterStatus {
 			                "searchable": false
 			            },
 			            {
-						    "targets": 4,
+						    "targets": 7,
 						    "data": "download_link",
 						    "render": function ( data, type, full, meta ) {
-						      return '<a href="/testerScreen?id=' + data+'" target="_blank">' + data + '</a>';     }
+						      return '<a href="/testerScreen?id=' + full.myTesterName+'" target="_blank">' + full.status + '</a>';     }
 						 }			            
 			        ],
 			"aoColumns": [
@@ -26,20 +27,37 @@ class MyTesterStatus {
 				{ "sTitle": "Category", "mData": "category" },
 				{ "sTitle": "Vendor", "mData": "vendor" },
 				{ "sTitle": "Product", "mData": "testerName" },
+				{ "sTitle": "Description", "mData": "description" },
 				{ "sTitle": "Tester ID", "mData": "myTesterName" },
 				{ "sTitle": "Parent", "mData": "parentid" },
-				{ "sTitle": "Status", "mData": "status" }
+				{ "sTitle": "Status", "mData": "status" },
+//				{ "sTitle": "Candidates", "mData": "parentCandidates" }
 			],
 			fnCreatedRow : function(nRow, aData, iDataIndex) {
-				var element = $("td:eq(4)", nRow);
+				if (aData.standalone) {
+					return;
+				}
+				var element = $("td:eq(5)", nRow);
 				element.text("");
-				var choice = $("<select></select>")
-//				.attr("type", "checkbox")
+				var choice = $('<select id="sel' + aData.id + '"></select>')
 				.attr("id", "sel" + aData.id)
 				.attr("class", "parentList")
-//				.attr("checked", aData.selected)
 				.change(function() {
-//					aData.check = $(this).is(":checked").toString();
+					var obj = new Object();
+					obj.id = aData.id;
+					obj.parentid = $(this).val();
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "POST",
+						url: "/setParent",
+						data: json,
+						contentType: "application/json",
+						dataType : "text"
+					}).done(function(data){
+						me.table.ajax.reload();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});						
 				});
 
 				element.append(choice);
@@ -49,12 +67,25 @@ class MyTesterStatus {
 		var me = this;
 		this.table.on( 'draw', function () {
 			var data = me.table.rows().data();
+			var map = new Map();
 			for (var i in data) {
 				var o = data[i];
-				$('.parentList').append($('<option>').html(o.testerName + '(' + o.myTesterName + ')').val(o.id));
+				map.set(o.id, o.testerName + ' (' + o.myTesterName + ')');
 			}
-			
-		});		
+			for (var i in data) {
+				var o = data[i];
+				$('#sel' + o.id).append($('<option>').html('-').val(-1));
+				if (o.parentid != null && o.parentid > 0) {
+					$('#sel' + o.id).append($('<option>').html(map.get(o.parentid)).val(o.parentid));
+				}
+				for (var j in o.parentCandidates) {
+					var option = o.parentCandidates[j];
+					$('#sel' + o.id).append($('<option>').html(map.get(option)).val(option));
+				}
+				$('#sel' + o.id).val(o.parentid);
+			}
+		});
+		
 		var me = this;
 		
 		var ws = new MyWebSocket(function(obj){

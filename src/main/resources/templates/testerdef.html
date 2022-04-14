@@ -329,14 +329,14 @@
 			modal:true,
 			autoOpen: false,
 			title: "Category Editor",
-			width: 800,
-			height: 500,
+			width: 600,
+			height: 300,
 			buttons: {
 				"OK": function() {							
 					$(this).dialog("close");
 				
 					var obj = new Object();
-					obj.id = selectedCategory.id;
+//					obj.id = selectedCategory.id;
 					obj.category_name = $('#newCategoryText').val();
 					obj.fullname = $('#newCategoryFullText').val();
 					var json = JSON.stringify(obj);
@@ -524,7 +524,7 @@
 		<button id="addnewCategory">Add Category</button>
 		<table id="categoryEidtTable"></table>
 		<div id="newCategoryDialog">
-			<div>>New Category<input type="text" id="newCategoryText"></div>
+			<div>New Category<input type="text" id="newCategoryText"></div>
 			<div>New Category Full Name<input type="text" id="newCategoryFullText"></div>
 		</div>
 	</div>

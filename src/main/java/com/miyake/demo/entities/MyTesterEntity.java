@@ -29,6 +29,8 @@ public class MyTesterEntity {
 	
 	private Boolean online;
 	
+	private Long parent;
+	
 	private String password;
 	@Override
 	public String toString() {
