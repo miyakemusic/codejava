@@ -15,7 +15,7 @@
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
 	<script type="text/javascript" th:src="@{/js/mywebsocket.js}"></script>
-	<script type="text/javascript" th:src="@{/js/mytesterstatus.js}"></script>
+	<script type="text/javascript" th:src="@{/js/mytestersconfig.js}"></script>
 	<script type="text/javascript">
 		class TesterRegisterPane {
 			constructor(div) {
@@ -66,7 +66,7 @@
 					.done(function(data){ 
 						$('#testermodel').empty();
 						for (let o of data) {
-							$('#testermodel').append($('<option>').html(o.product_name).val(o.id));
+							$('#testermodel').append($('<option>').html(o.product_name + '(' + o.description + ')').val(o.id));
 						}
 					})
 					.fail(function(XMLHttpRequest, textStatus, errorThrown){
@@ -126,7 +126,7 @@
 				showDialog();
 			});
 
-			var mytesterTable = new MyTesterStatus('mytesters');
+			var mytesterTable = new MyTestersConfig('mytesters');
 			
 			function showDialog() {
 				var pane = new TesterRegisterPane('regTesterDialog');
@@ -149,8 +149,6 @@
 					}
 				});
 			}
-			
-
 /*  
 			var token = $("meta[name='_csrf']").attr("content");
 			var header = $("meta[name='_csrf_header']").attr("content");

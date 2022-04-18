@@ -3,6 +3,7 @@ package com.miyake.demo;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +23,7 @@ import com.miyake.demo.entities.PortTestEntity;
 import com.miyake.demo.entities.TestScenarioItemEntity;
 import com.miyake.demo.entities.TesterCapabilityEntity;
 import com.miyake.demo.entities.TesterEntity;
+import com.miyake.demo.jsonobject.ImageJson;
 import com.miyake.demo.jsonobject.TestPlan2;
 import com.miyake.demo.jsonobject.TestPlan2Element;
 import com.miyake.demo.jsonobject.WebSocketSignal;
@@ -109,7 +111,8 @@ public class TesterRestController {
     	    		testPlan.add(element);
     	    		
     	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(pte.getPort(), 
-    	    				this.portRepository.getById(pte.getPort()).getPort_name()).testItem(pte.getTestItem(), pte.getTest_itemEntity().getTest_item());
+    	    				this.portRepository.getById(pte.getPort()).getPort_name()).testItem(pte.getTestItem(), 
+    	    						pte.getTest_itemEntity().getTest_item());
     	    	}    			
     		}
     	}
@@ -161,6 +164,23 @@ public class TesterRestController {
     public String post_test_results(@AuthenticationPrincipal CustomTesterDetails userDetails, @RequestBody TestPlan2Element[] results) {
     	for (TestPlan2Element e  : results) {
     		post_test_result(userDetails, e);
+    	}
+    	return "OK";
+    }
+    
+    public static String image;
+    @PostMapping("screen")
+    public String postImage(@RequestBody ImageJson image) {
+    	TesterRestController.image = Base64.encodeBase64String(image.image);
+    	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.ImageReady, null);
+    	try {
+	    	TextMessage message = new TextMessage(new ObjectMapper().writeValueAsString(signal));
+	    	for (WebSocketSession s: this.messageHandler.getSessions()) {
+	    		s.sendMessage(message);
+	    	}
+    	}
+    	catch (Exception e) {
+    		e.printStackTrace();
     	}
     	return "OK";
     }

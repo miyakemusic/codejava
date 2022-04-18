@@ -86,9 +86,48 @@
 					{ "sTitle": "Product Name", "mData": "name" },
 					{ "sTitle": "Description", "mData": "description" },
 					{ "sTitle": "Type", "mData": "typeText" },
+					{ "sTitle": "Parent(s)", "mData": "parents" },
 					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
 					{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
-				]
+				],
+				fnCreatedRow : function(nRow, aData, iDataIndex) {
+					var productNameElement = $("td:eq(1)", nRow);
+					productNameElement.text("");
+					var button = $('<button>' + aData.name + '</button>')
+					.attr("class", "btn btn-link")
+//					.attr("id", "button" + aData.id)
+					.attr("width", "100%")
+					.click(function() {
+						selectedData = table.row( $(this).parents('tr') ).data();
+						$('#editTesterName').val(selectedData.name);
+						$('#editTesterDescription').val(selectedData.description);
+						$('#productTypeList').val(selectedData.type);
+
+						$(".testerCategory").each(function(i,e){
+							$('#' + e.id).prop('checked', false);
+						});
+						for (var c of selectedData.category) {
+							$('#categoryCheck' + c).prop('checked', true);
+						}
+
+						$("#configDialog").dialog('open');						
+					});
+					productNameElement.append(button);
+					
+					//
+					var parentElement = $("td:eq(4)", nRow);
+					parentElement.text("");
+					var button = $('<button>' + aData.parents + '</button>')
+					.attr("class", "btn btn-link")
+//					.attr("id", "button" + aData.id)
+					.attr("width", "100%")
+					.click(function() {
+						selectedData = table.row( $(this).parents('tr') ).data();
+						updateParentTable();
+						$("#parentEditDiv").dialog('open');					
+					});
+					parentElement.append(button);		
+				}			
 			});	
 			
 			$('#testersTable tbody').on( 'click', 'button', function () {
@@ -413,7 +452,7 @@
 						contentType: "application/json",
 						dataType : "text"
 					}).done(function(data){
-						//categoryTable.ajax.reload();
+						table.ajax.reload();
 					}).fail(function(XMLHttpRequest, status, e){
 						alert(e);
 					});	
@@ -425,9 +464,9 @@
 			}
 		});	
 		
-		$('#editParents').click(function(){
-			$("#parentEditDiv").dialog('open');
+		function updateParentTable() {
 			if (parentTable == null) {
+				$('#parentEditTable').css('width', '100%');
 				parentTable = $('#parentEditTable').DataTable({
 					"iDisplayLength": 50,
 					"sAjaxSource": 'parentTesterJson?vendor=' + $('#testervendor').val() + '&tester=' + selectedData.id,
@@ -441,13 +480,14 @@
 					        ],
 					"aoColumns": [
 						{ "sTitle": "ID", "mData": "id" },
+						{ "sTitle": "Check", "mData": "selected" },
 						{ "sTitle": "Product Name", "mData": "name" },
 						{ "sTitle": "Description", "mData": "description" },
-						{ "sTitle": "Check", "mData": "selected" },
+						
 //						{ "sTitle": "Select", "mData": null, "sDefaultContent": '<input type="checkbox" class="parent-check">' },
 					],
 					fnCreatedRow : function(nRow, aData, iDataIndex) {
-						var element = $("td:eq(2)", nRow);
+						var element = $("td:eq(0)", nRow);
 						element.text("");
 						var checkbox = $("<input>")
 						.attr("type", "checkbox")
@@ -455,7 +495,7 @@
 						.attr("class", "checkbox")
 						.attr("checked", aData.selected)
 						.change(function() {
-							aData.check = $(this).is(":checked").toString();
+							aData.selected = $(this).is(":checked").toString();
 						});
 
 						element.append(checkbox);
@@ -465,8 +505,14 @@
 			else {
 				parentTable.ajax.url('parentTesterJson?vendor=' + $('#testervendor').val() + '&tester=' + selectedData.id);
 				parentTable.ajax.reload();
-			}
+			}		
+		}
+		
+		$('#editParents').click(function(){
+			$("#parentEditDiv").dialog('open');
+			updateParentTable();
 		});
+		
 		$('#parentEditSelectAll').click(function(){
 			parentTable.rows({"search":"applied" }).every( function () {
 			    var data = this.data();

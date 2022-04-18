@@ -159,7 +159,11 @@ public class AppController {
         return "assets";
     }
     
-	
+    @GetMapping("/assetsview")
+    public String assetsView(Model model) {
+        return "assetsview";
+    }
+    
 	@GetMapping("/testerScreen")
     public String testerScreen(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) String id) {
 		model.addAttribute("tester", id);

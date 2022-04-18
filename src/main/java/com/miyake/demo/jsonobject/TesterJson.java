@@ -15,10 +15,12 @@ public class TesterJson {
 	public Long vendorid;
 	public int type;
 	public String typeText;
+	public String parents;
 	
 	public TesterJson() {}
 	
-	public TesterJson(Long vendorid, Long id, String product_name, String description, Integer type, String typeText, List<Long> category2, String categoryText) {
+	public TesterJson(Long vendorid, Long id, String product_name, String description, 
+			Integer type, String typeText, List<Long> category2, String categoryText, String parents) {
 		this.vendorid = vendorid;
 		this.id = id;
 		this.name = product_name;
@@ -27,6 +29,7 @@ public class TesterJson {
 		this.category = category2;
 		this.type = type;
 		this.typeText = typeText;
+		this.parents = parents;
 	}
 
 }

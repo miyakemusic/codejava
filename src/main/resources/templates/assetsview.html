@@ -1,0 +1,74 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
+	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript" th:src="@{/js/mywebsocket.js}"></script>
+	<script type="text/javascript">
+	$(function() {
+		$.ajax({
+			type: "GET",
+			url: "header",
+			dataType : "html"
+		})
+		.done(function(data){ 
+			$('#headerDiv').html(data);
+		})
+		.fail(function(XMLHttpRequest, textStatus, errorThrown){
+			alert(errorThrown);
+		});
+		
+		var table = $('#assetview').DataTable({
+			"iDisplayLength": 50,
+			"sAjaxSource": 'mytestersviewforjs',
+			"sAjaxDataProp": "",
+			"columnDefs": [
+			            {
+			                "targets": [ 0 ],
+			                "visible": false,
+			                "searchable": false
+			            },
+			            {
+						    "targets": 6,
+						    "data": "download_link",
+						    "render": function ( data, type, full, meta ) {
+						    	var url = '/testerScreen?id=' + full.myTesterName;
+						      return '<a href="' + url + '" target="_blank">' + full.status + '</a>';     }
+						 }			            
+			        ],
+			"aoColumns": [
+				{ "sTitle": "ID", "mData": "id" },
+				{ "sTitle": "Category", "mData": "category" },
+				{ "sTitle": "Vendor", "mData": "vendor" },
+				{ "sTitle": "Product", "mData": "testerName" },
+				{ "sTitle": "Description", "mData": "description" },
+				{ "sTitle": "Tester ID", "mData": "myTesterName" },
+				{ "sTitle": "Status", "mData": "status" },
+			]
+		});		
+		
+		var ws = new MyWebSocket(function(obj){
+			if (obj.signalType == 'Signin' || obj.signalType == 'Signout') {
+				table.ajax.reload();
+			}			
+		});
+	});
+	</script>
+    <title></title>
+</head>
+<body>
+	<div id='headerDiv'></div>
+	<div><table id="assetview"></table></div>
+</body>
+</html>

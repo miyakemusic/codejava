@@ -27,6 +27,50 @@
 				alert(errorThrown);
 			});		
   
+			function getParam(name, url) {
+			    if (!url) url = window.location.href;
+			    name = name.replace(/[\[\]]/g, "\\$&");
+			    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+			        results = regex.exec(url);
+			    if (!results) return null;
+			    if (!results[2]) return '';
+			    return decodeURIComponent(results[2].replace(/\+/g, " "));
+			}
+			
+			function retreiveImage() {
+				var name = getParam('id');
+				$.ajax({
+					type: "GET",
+					url: "requestImage?name=" + name,
+					dataType : "text"
+				})
+				.done(function(data){ 
+					
+				})
+				.fail(function(XMLHttpRequest, textStatus, errorThrown){
+					alert(errorThrown);
+				});				
+			}
+			var ws = new MyWebSocket(function(obj){
+				if (obj.signalType == 'ImageReady') {
+					$.ajax({
+						type: "GET",
+						url: "screenImage?name=" + getParam('id'),
+						dataType : "text"
+					})
+					.done(function(data){ 
+						var img = document.getElementById("screen");
+//						img.src = "data:image/jpeg;base64," + window.btoa(data);
+						img.src = "data:image/jpeg;base64," + data;
+
+					})
+					.fail(function(XMLHttpRequest, textStatus, errorThrown){
+						alert(errorThrown);
+					});		
+				}			
+			});
+			
+			retreiveImage();
 /*			var token = $("meta[name='_csrf']").attr("content");
 			var header = $("meta[name='_csrf_header']").attr("content");
 			$(document).ajaxSend(function(e, xhr, options) {
@@ -40,6 +84,6 @@
 <body>
 	<div id="headerDiv"></div>
     <h1 th:text="${tester}"></h1>
-    <div id="maindiv"></div>
+    <div id="maindiv"><img id="screen" src=""></div>
 </body>
 </html>

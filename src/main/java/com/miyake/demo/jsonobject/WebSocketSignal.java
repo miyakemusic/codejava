@@ -8,7 +8,10 @@ public class WebSocketSignal {
 		Signin,
 		Signout,
 		ResultUpdated,
-		RequestTest	}
+		RequestTest, 
+		RequestImage, 
+		ImageReady	
+	}
 	private SignalType signalType;
 	private Object object;
 

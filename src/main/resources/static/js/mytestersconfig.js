@@ -1,4 +1,4 @@
-class MyTesterStatus {
+class MyTestersConfig {
 	constructor(div) {
 		this.thisdiv = div + "_mytetser";
 		var tableid = this.thisdiv + "_table";
@@ -15,12 +15,12 @@ class MyTesterStatus {
 			                "visible": false,
 			                "searchable": false
 			            },
-			            {
-						    "targets": 7,
-						    "data": "download_link",
-						    "render": function ( data, type, full, meta ) {
-						      return '<a href="/testerScreen?id=' + full.myTesterName+'" target="_blank">' + full.status + '</a>';     }
-						 }			            
+//			            {
+//						    "targets": 7,
+//						    "data": "download_link",
+//						    "render": function ( data, type, full, meta ) {
+//						      return '<a href="/testerScreen?id=' + full.myTesterName+'" target="_blank">' + full.status + '</a>';     }
+//						 }			            
 			        ],
 			"aoColumns": [
 				{ "sTitle": "ID", "mData": "id" },
@@ -30,7 +30,7 @@ class MyTesterStatus {
 				{ "sTitle": "Description", "mData": "description" },
 				{ "sTitle": "Tester ID", "mData": "myTesterName" },
 				{ "sTitle": "Parent", "mData": "parentid" },
-				{ "sTitle": "Status", "mData": "status" },
+//				{ "sTitle": "Status", "mData": "status" },
 //				{ "sTitle": "Candidates", "mData": "parentCandidates" }
 			],
 			fnCreatedRow : function(nRow, aData, iDataIndex) {

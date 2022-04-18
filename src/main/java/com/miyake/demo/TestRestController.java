@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -310,7 +312,8 @@ public class TestRestController {
     @GetMapping("/testerListJson")
     public List<TesterJson> testerList(@RequestParam(value = "vendor", required=true) Long vendor) {
     	List<TesterJson> ret = new ArrayList<TesterJson>();
-    	for (TesterEntity e : this.testerRepository.findByVendor(vendor)) {
+    	List<TesterEntity> testers = this.testerRepository.findByVendor(vendor);
+    	for (TesterEntity e : testers) {
     		List<TesterCategoryRelationEntity> categoryRelation = testerCategoryRelationRepository.findByTester(e.getId());
     		List<Long> category = new ArrayList<>();
     		String categoryText = "";
@@ -321,7 +324,19 @@ public class TestRestController {
     		if (!categoryText.isEmpty()) {
     			categoryText = categoryText.substring(0, categoryText.length()-1);
     		}
-    		ret.add(new TesterJson(e.getVendor(), e.getId(), e.getProduct_name(), e.getDescription(), e.getProducttype().ordinal(), e.getProducttype().name(), category, categoryText));
+    		
+    		String parentsText = "";
+    		List<TesterOptionRelationEntity> parents = this.testerOptionRelationRepository.findByChild(e.getId());
+    		for (TesterOptionRelationEntity parent : parents) {
+    			parentsText += this.testerRepository.getById(parent.getParent()).getProduct_name() + "/";
+    		}
+    		if (parentsText.length() > 0) {
+    			parentsText = parentsText.substring(0, parentsText.length()-1);
+    		}
+    		else {
+    			parentsText = "---";
+    		}
+    		ret.add(new TesterJson(e.getVendor(), e.getId(), e.getProduct_name(), e.getDescription(), e.getProducttype().ordinal(), e.getProducttype().name(), category, categoryText, parentsText));
     	}
     	
     	return ret;
@@ -995,6 +1010,114 @@ public class TestRestController {
     	return ret;
     }
 
+    @GetMapping("/mytestersviewforjs")
+    public List<MyTesterJson> getMyTestersViewForJs(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    	List<MyTesterJson> ret = new ArrayList<>();
+    	Long group = userDetails.getUser().getUsergroup();
+    	List<MyTesterEntity> mytesters = myTesterRepository.getByUsergroup(group);
+    	
+    	Map<Long /*parent*/, List<Long> /*children*/> relation = new HashMap<>();
+    	for (MyTesterEntity e : mytesters) {
+    		if (!relation.containsKey(e.getParent())) {
+    			relation.put(e.getParent(), new ArrayList<Long>());
+    		}
+    		relation.get(e.getParent()).add(e.getId());
+    	}
+    	
+    	ProductTreeGenerator generator = new ProductTreeGenerator(mytesters);
+    	
+    	for (MyTesterEntity e : mytesters) {
+    		TesterEntity tester = this.testerRepository.getById(e.getTester());
+    		if (tester.getProducttype().compareTo(ProductType.Standalone) != 0) {
+    			continue;
+    		}
+    		MyTesterJson json = new MyTesterJson();
+    		json.setId(e.getId());
+    		json.setStandalone(tester.getProducttype().compareTo(ProductType.Standalone) == 0);
+    		json.setVendor(tester.getVendorEntity().getVendorname());
+    		json.setCategory(generator.categories(e.getId()).toString().replace("[", "").replace("]", ""));
+    		String optionProduct = generator.findOptions(e.getId(), true);
+    		String product = tester.getProduct_name();
+    		if (!optionProduct.isEmpty()) {
+    			product += "(" + optionProduct.substring(0, optionProduct.length()-1) + ")";
+    		}
+    		json.setTesterName(product);
+    		json.setMyTesterName(e.getName());
+    		json.setStatus(e.getOnline() ? "Online" : "-");
+    		json.setDescription(tester.getDescription());
+    		
+    		List<TesterCategoryRelationEntity> categories = this.testerCategoryRelationRepository.findByTester(tester.getId());
+    		String categoryText = "";
+    		for (TesterCategoryRelationEntity c : categories) {
+    			TesterCategoryEntity category = testerCategoryRepository.getById(c.getCategory());
+    			categoryText += category.getCategory_name() + "/";
+    		}
+    		if (categoryText.length() > 0) {
+    			json.setCategory(categoryText.substring(0, categoryText.length()-1));
+    		}
+    		
+    		ret.add(json);
+    	}
+    	return ret;
+    }
+    
+    class ProductTreeGenerator {
+    	private Map<Long/*parent*/, List<Long>/*children*/> relation = new HashMap<>();
+    	
+    	public ProductTreeGenerator(List<MyTesterEntity> mytesters) {
+    		for (MyTesterEntity myTester : mytesters) {
+    			if (myTester.getParent() == null) {
+    				continue;
+    			}
+    			if (!relation.containsKey(myTester.getParent())) {
+    				relation.put(myTester.getParent(), new ArrayList<Long>());
+    			}
+    			relation.get(myTester.getParent()).add(myTester.getId());
+    		}
+    	}
+    	
+    	public Set<String> categories(Long id) {
+    		Set<String> ret = new HashSet<>();
+    		
+    		 MyTesterEntity myTester = myTesterRepository.getById(id);
+    		 //TesterEntity tester = testerRepository.getById(myTester.getTester());
+    		 List<TesterCategoryRelationEntity> relations = testerCategoryRelationRepository.findByTester(myTester.getTester());
+    		 
+    		 for (TesterCategoryRelationEntity relation : relations) {
+    			 TesterCategoryEntity category = testerCategoryRepository.getById(relation.getCategory());
+    			 ret.add(category.getCategory_name());
+    		 }
+
+
+    		List<Long> children = relation.get(id);
+    		if (children != null) {
+	    		for (Long child : children) {
+	    			Set<String> subOption = categories(child);
+	    			ret.addAll(subOption);
+	    		}
+    		}
+    		return ret;
+		}
+
+		public String findOptions(Long id, boolean initial) {
+    		String ret = "";
+    		
+    		if (!initial) {
+	    		 MyTesterEntity myTester = myTesterRepository.getById(id);
+	    		 TesterEntity tester = testerRepository.getById(myTester.getTester());
+	    		 ret += tester.getProduct_name() + ",";
+    		}
+    		List<Long> children = relation.get(id);
+    		if (children != null) {
+	    		for (Long child : children) {
+	    			String subOption = findOptions(child, false);
+	    			ret += subOption;
+	    		}
+    		}
+    		return ret;
+    	}
+    }
+
 
 	private List<Long> getCandidates(MyTesterEntity e, TesterEntity tester, List<MyTesterEntity> mytesters) {
 		List<Long> usedParents = new ArrayList<>();
@@ -1008,10 +1131,10 @@ public class TestRestController {
 		for (TesterOptionRelationEntity p : parents) {
 			for (MyTesterEntity mine : mytesters) {
 				
-				if ((p.getParent() == mine.getTester()) /*&& !usedParents.contains(mine.getId())*/) {
-					if (!usedParents.contains(mine.getId())) {
+				if ((p.getParent() == mine.getTester())) {
+//					if (!usedParents.contains(mine.getId())) {
 						ret.add(mine.getId());
-					}
+//					}
 				}
 			}
 		}
@@ -1029,6 +1152,7 @@ public class TestRestController {
     	
     	return myTesterRepository.save(entity);
     }
+	
     @DeleteMapping("/mytester")
     public String deletemytester(@RequestParam(value = "id", required=false) Long id){
     	myTesterRepository.deleteById(id);
@@ -1490,4 +1614,28 @@ public class TestRestController {
 		return ret;
 	}
 
+	@GetMapping("/requestImage")
+	public String getImage(@RequestParam(value = "name", required=true) String name) throws IOException {
+    	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.RequestImage, null);
+    	TextMessage json = new TextMessage(new ObjectMapper().writeValueAsString(signal));
+    	this.messageHandler.getSessions().forEach(ws -> {
+    		try {
+				ws.sendMessage(json);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	});
+    	return "OK";
+	} 
+	
+	@GetMapping("/screenImage")
+	public String screenImage(@RequestParam(value = "name", required=true) String name) throws IOException {
+		if (TesterRestController.image != null) {
+			return TesterRestController.image;
+		}
+		else {
+			return "";
+		}
+	} 
+	
 }
