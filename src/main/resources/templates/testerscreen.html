@@ -27,18 +27,19 @@
 				alert(errorThrown);
 			});		
   
-			function getParam(name, url) {
+			function getParam(param, url) {
 			    if (!url) url = window.location.href;
-			    name = name.replace(/[\[\]]/g, "\\$&");
-			    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+			    param = param.replace(/[\[\]]/g, "\\$&");
+			    var regex = new RegExp("[?&]" + param + "(=([^&#]*)|&|#|$)"),
 			        results = regex.exec(url);
 			    if (!results) return null;
 			    if (!results[2]) return '';
 			    return decodeURIComponent(results[2].replace(/\+/g, " "));
 			}
 			
+			var name = getParam('id');
+			
 			function retreiveImage() {
-				var name = getParam('id');
 				$.ajax({
 					type: "GET",
 					url: "requestImage?name=" + name,
@@ -55,7 +56,7 @@
 				if (obj.signalType == 'ImageReady') {
 					$.ajax({
 						type: "GET",
-						url: "screenImage?name=" + getParam('id'),
+						url: "screenImage?name=" + name,
 						dataType : "text"
 					})
 					.done(function(data){ 
@@ -70,6 +71,31 @@
 				}			
 			});
 			
+			$('#screen').mousedown(function(e){
+				
+			});
+			$('#screen').mouseup(function(e){
+				
+			});	
+			$('#screen').click(function(e){
+				var obj = new Object();
+				obj.name = name;
+				obj.x = e.offsetX;
+				obj.y = e.offsetY;
+				obj.event = "MouseClick";
+				var json = JSON.stringify(obj);
+				$.ajax({
+					type: "POST",
+					url: "/mouseEvent",
+					data: json,
+					contentType: "application/json",
+					dataType : "text"
+				}).done(function(data){
+					me.table.ajax.reload();
+				}).fail(function(XMLHttpRequest, status, e){
+					alert(e);
+				});					
+			});	
 			retreiveImage();
 /*			var token = $("meta[name='_csrf']").attr("content");
 			var header = $("meta[name='_csrf_header']").attr("content");

@@ -63,6 +63,7 @@ import com.miyake.demo.jsonobject.DiagramItemContainer;
 import com.miyake.demo.jsonobject.DiagramItemContainers;
 import com.miyake.demo.jsonobject.IdValue;
 import com.miyake.demo.jsonobject.LinkContainer;
+import com.miyake.demo.jsonobject.MouseEventJson;
 import com.miyake.demo.jsonobject.MyTesterJson;
 import com.miyake.demo.jsonobject.MyTesterRegistration;
 import com.miyake.demo.jsonobject.ParentTester;
@@ -1638,4 +1639,18 @@ public class TestRestController {
 		}
 	} 
 	
+	@PostMapping("/mouseEvent")
+	public String mouseEvent(@RequestBody MouseEventJson mouseEvent) throws JsonProcessingException {
+		System.out.println("x=" + mouseEvent.x + ", y=" + mouseEvent.y);
+    	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.MouseEvent, mouseEvent);
+    	TextMessage json = new TextMessage(new ObjectMapper().writeValueAsString(signal));
+    	this.messageHandler.getSessions().forEach(ws -> {
+    		try {
+				ws.sendMessage(json);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	});
+		return "OK";
+	}
 }
