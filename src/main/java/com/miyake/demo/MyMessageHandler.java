@@ -32,7 +32,7 @@ public class MyMessageHandler extends TextWebSocketHandler  {
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) {
         try {
-            TextMessage outputMessage = new TextMessage("メッセージ返信：送信内容=" + message.getPayload());
+            TextMessage outputMessage = new TextMessage("Message:" + message.getPayload());
             session.sendMessage(outputMessage);
         } catch (IOException e) {
             e.printStackTrace();

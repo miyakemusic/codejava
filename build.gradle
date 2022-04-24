@@ -24,8 +24,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
 	
+		
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5' 
+        
+        
+        
 	implementation 'org.webjars:jquery:3.6.0'
 	implementation 'org.webjars:jquery-ui:1.12.1'
 	implementation 'org.webjars:bootstrap:5.1.0'
@@ -35,15 +39,18 @@ dependencies {
 	implementation 'org.webjars:datatables:1.10.19'
 	implementation group: 'org.webjars.bower', name: 'datatables-tabletools', version: '2.2.4'
 	
-
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
-
 }
 
 test {
 	useJUnitPlatform()
+}
+
+
+jar {
+	baseName = 'BlogProject'
 }

@@ -2,6 +2,7 @@ package com.miyake.demo;
 
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -262,17 +263,18 @@ public class TestRestController {
     public List<PortDirectionEntity> portDirection() {
     	return this.portDirectionRepository.findAll();
     }
+    
     @DeleteMapping("/PortDirectionEntity")
     public String deletePortDirection(@RequestParam(value = "id", required=false) Long id) {
     	portDirectionRepository.deleteById(id);
     	return "OK";
     }
+    
     @PostMapping("/PortDirectionEntity")
     public PortDirectionEntity portDirection(@RequestBody PortDirectionEntity port) {
     	this.portDirectionRepository.save(port);
     	return port;
     }
-    
     
     @PostMapping("/PortEntity/copy")
     public PortEntity copyPort(@RequestBody PortEntity port) {
@@ -1011,6 +1013,7 @@ public class TestRestController {
     	return ret;
     }
 
+    static SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd h:mm");
     @GetMapping("/mytestersviewforjs")
     public List<MyTesterJson> getMyTestersViewForJs(@AuthenticationPrincipal CustomUserDetails userDetails) {
     	List<MyTesterJson> ret = new ArrayList<>();
@@ -1037,6 +1040,12 @@ public class TestRestController {
     		json.setStandalone(tester.getProducttype().compareTo(ProductType.Standalone) == 0);
     		json.setVendor(tester.getVendorEntity().getVendorname());
     		json.setCategory(generator.categories(e.getId()).toString().replace("[", "").replace("]", ""));
+    		if (e.getLastaccess() != null) {
+    			json.setLastAccess(format.format(e.getLastaccess()));
+    		}
+    		else {
+    			json.setLastAccess("-");
+    		}
     		String optionProduct = generator.findOptions(e.getId(), true);
     		String product = tester.getProduct_name();
     		if (!optionProduct.isEmpty()) {

@@ -1,6 +1,7 @@
 package com.miyake.demo;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -63,6 +64,7 @@ public class TesterRestController {
     	Long testerid = userDetails.getTester().getId();
     	MyTesterEntity entity = this.myTesterRepository.getById(testerid);
     	entity.setOnline(true);
+    	entity.setLastaccess(Calendar.getInstance().getTime());
     	this.myTesterRepository.save(entity);
     	
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.Signin, entity);

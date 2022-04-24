@@ -1,7 +1,11 @@
 package com.miyake.demo.jsonobject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.Data;
 
@@ -19,6 +23,8 @@ public class MyTesterJson {
 	private String description;
 	private boolean standalone;
 	private List<Long> parentCandidates = new ArrayList<>();
+	
+	private String lastAccess;
 	
 	public MyTesterJson() {}
 	public MyTesterJson(Long id, String myTesterName, String testerName) {
