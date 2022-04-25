@@ -44,7 +44,7 @@ public class DiagramItemContainers {
 		int x = Integer.MAX_VALUE;
 		int y = Integer.MAX_VALUE;
 		
-		Comparator<DiagramItemContainer> comparator = new Comparator<>() {
+		Comparator<DiagramItemContainer> comparator = new Comparator<DiagramItemContainer>() {
 			@Override
 			public int compare(DiagramItemContainer o1, DiagramItemContainer o2) {
 				return o1.x1 - o2.x1;
