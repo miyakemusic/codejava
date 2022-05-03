@@ -104,6 +104,12 @@ public class AppController {
         return "project";
     }
     
+    @GetMapping("/projectsummary")
+    public String projectsummary(Model model, @RequestParam(value = "id", required=true) Long id) {
+    	model.addAttribute("id", id);
+        return "projectsummary";
+    }
+    
     @GetMapping("/equipmenttopology")
     public String diagram(Model model, @RequestParam(value = "id", required=true) Long id) {
     	ProjectEntitySimple project = this.projectRepositorySimple.getById(id);
@@ -133,6 +139,11 @@ public class AppController {
     	model.addAttribute("parent", id);
     	
         return "equipment";
+    }
+    
+    @GetMapping("/equipmentdef")
+    public String equipmentsdef(Model model) {   	
+        return "equipmentdef";
     }
     
     @GetMapping("/testitems")

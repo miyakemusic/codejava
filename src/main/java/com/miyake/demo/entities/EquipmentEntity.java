@@ -32,6 +32,8 @@ public class EquipmentEntity{
 	
 	private Integer status;
 	
+	private String address;
+	
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category", insertable = false, updatable = false, nullable=true)
     private EquipmentCategoryEntity categoryEntity;

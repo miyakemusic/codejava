@@ -29,28 +29,55 @@
 				alert(errorThrown);
 			});
 			
-			$.ajax({
-				type: "GET",
-				url: "ProjectEntityS",
-				dataType : "json"
-			})
-			.done(function(data){ 
-				for (let obj of data) {
-					$('#table tbody').append('<tr><td>' + obj.id + '</td><td><a href="project?id=' + obj.id + '">' + obj.name + '</a></td><td>' + obj.comment + '</td><td>' + 
-					'<a href="project?id=' + obj.id + '" target="_blank">Edit</a></td><td><a href="equipmenttopology?id=' + obj.id + '" target="_blank">Edit</a></td>' + 
-					'</tr>');
-				}
-				$("#table").DataTable({
-					"paging": true,
-				});
+			var table = $('#projects').DataTable({
+				"iDisplayLength": 50,
+				"sAjaxSource": 'projectList',
+				"sAjaxDataProp": "",
+				"columnDefs": [
+				            {
+				                "targets": [ 0 ],
+				                "visible": false,
+				                "searchable": false
+				            },
+				            {
+							    "targets": 1,
+							    "data": "download_link",
+							    "render": function ( data, type, full, meta ) {
+							    	//var url = '/equipmenttopology?id=' + full.id;
+							    	var url = '/projectsummary?id=' + full.id;
+							     	return '<a href="' + url + '" target="_blank">' + full.name + '</a>';     }
+							 }			            
+				        ],
+				"aoColumns": [
+					{ "sTitle": "ID", "mData": "id" },
+					{ "sTitle": "Project", "mData": "name" },
+					{ "sTitle": "Comment", "mData": "comment" }
+				]
+			});		
+			
+			
+//			$.ajax({
+//				type: "GET",
+//				url: "ProjectEntityS",
+//				dataType : "json"
+//			})
+//			.done(function(data){ 
+//				for (let obj of data) {
+//					$('#table tbody').append('<tr><td>' + obj.id + '</td><td><a href="project?id=' + obj.id + '">' + obj.name + '</a></td><td>' + obj.comment + '</td><td>' + 
+//					'<a href="project?id=' + obj.id + '" target="_blank">Edit</a></td><td><a href="equipmenttopology?id=' + obj.id + '" target="_blank">Edit</a></td>' + 
+//					'</tr>');
+//				}
+//				$("#table").DataTable({
+//					"paging": true,
+//				});
 				
-			    $('#table tbody').on( 'click', 'tr', function () {
-			        $(this).toggleClass('selected');
-			    } );
-			})
-			.fail(function(XMLHttpRequest, textStatus, errorThrown){
-				alert(errorThrown);
-			});
+//			    $('#table tbody').on( 'click', 'tr', function () {
+//			        $(this).toggleClass('selected');
+//			    } );
+//			})
+//			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+//				alert(errorThrown);
+//			});
 			
 			$('#regTesterButton').click(function(){
 				showDialog();
@@ -91,10 +118,9 @@
 </head>
 <body>
 	<div id='headerDiv'></div>
-    <form role="form" id="logout" th:action="@{/logout}" method="post">
-	    <button type="submit">Logout</button>
-	</form>
     <div id="regTesterDialog"></div>
-    <div><table id="table" class="table table-striped table-bordered"><thead class="thead-dark"><tr><td>ID</td><td>Project Name</td><td>Comment</td><td>List</td><td>Diagram</td></tr></thead><tbody></tbody></table></div>
+    <!-- <div><table id="table" class="table table-striped table-bordered"><thead class="thead-dark"><tr><td>ID</td><td>Project Name</td><td>Comment</td><td>List</td><td>Diagram</td></tr></thead><tbody></tbody></table></div>  -->
+    <button>Create Project</button>
+    <table id="projects" class="table table-striped table-bordered"></table>
 </body>
 </html>

@@ -18,6 +18,8 @@ public class EquipmentCategoryEntity {
 	
 	private String category;
 	
+	private String description;
+	
 	@Override
 	public String toString() {
 		return this.category;

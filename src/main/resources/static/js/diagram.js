@@ -104,7 +104,8 @@ class DiagramCanvas {
 				var obj = data.items[id];
 				me.buttons.push(obj.id);
 				
-				$('#' + this.div).append('<input class="itemButton" type="submit" id="' + obj.id + '"' + ' value="' + obj.text + '">');
+//				$('#' + this.div).append('<input class="itemButton" type="submit" id="' + obj.id + '"' + ' value="' + obj.text + '">');
+				$('#' + this.div).append('<input class="itemButton" type="button" id="' + obj.id + '"' + ' value="' + obj.text + '">');
 				
 				$('#' + obj.id).mousedown(function(e) {
 					buttonDown = true;
@@ -160,13 +161,14 @@ class DiagramCanvas {
 				});
 				
 				$('#' + obj.id).css("position", "absolute");
-				$('#' + obj.id).css("display", "inline-block");
+//				$('#' + obj.id).css("display", "inline-block");
 				$('#' + obj.id).css("left", obj.x + this.offsetx + 'px');
 				$('#' + obj.id).css("top", obj.y + this.offsety + 'px');
 				$('#' + obj.id).css("width", obj.width + 'px');
 				$('#' + obj.id).css("height", obj.height + 'px');
-				$('#' + obj.id).css("line-height", obj.height + 'px');
+//				$('#' + obj.id).css("line-height", obj.height + 'px');
 				$('#' + obj.id).css("font-size", "10px");
+				$('#' + obj.id).css("white-space", "normal");
 			}
 			this.linkCtx.strokeRect(this.offsetx + data.x1, this.offsety + data.y1, data.x2 - data.x1, data.y2 - data.y1);
 			this.linkCtx.fillText(data.name, this.offsetx + data.x1, this.offsety + data.y1 - 5);
@@ -257,12 +259,16 @@ class DiagramCanvas {
 			
 			if (me.mode == 'move' && selectedButton != null) {
 				var id = selectedButton.attr('id');
-				var x = e.clientX - $('#' + this.tentative_id).offset().left;
-				var y = e.clientY - $('#' + this.tentative_id).offset().top;
+				var x = e.clientX - $('#' + me.tentative_id).offset().left;
+				var y = e.clientY - $('#' + me.tentative_id).offset().top;
 
 				var buttonPos = selectedButton.position();
-				x = e.clientX + buttonPos.left - moveStartX - me.offsetx;
-				y = e.clientY + buttonPos.top - moveStartY - me.offsety;
+//				x = e.clientX + buttonPos.left - moveStartX - me.offsetx;
+//				y = e.clientY + buttonPos.top - moveStartY - me.offsety;
+
+
+				x = e.clientX + buttonPos.left - moveStartX;
+				y= e.clientY + buttonPos.top - moveStartY, 
 				
 				x = Math.round(x / containers.gridx) * containers.gridx;
 				y = Math.round(y / containers.gridy) * containers.gridy;

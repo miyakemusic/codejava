@@ -71,18 +71,12 @@
 				}			
 			});
 			
-			$('#screen').mousedown(function(e){
-				
-			});
-			$('#screen').mouseup(function(e){
-				
-			});	
-			$('#screen').click(function(e){
+			function postMouseEvent(e, mouseType) {
 				var obj = new Object();
 				obj.name = name;
 				obj.x = e.offsetX;
 				obj.y = e.offsetY;
-				obj.event = "MouseClick";
+				obj.event = mouseType;
 				var json = JSON.stringify(obj);
 				$.ajax({
 					type: "POST",
@@ -91,11 +85,27 @@
 					contentType: "application/json",
 					dataType : "text"
 				}).done(function(data){
-					me.table.ajax.reload();
+
 				}).fail(function(XMLHttpRequest, status, e){
 					alert(e);
 				});					
+			}
+
+			$('#screen').mousemove(function(e){
+//				postMouseEvent('MouseMove');
+			});
+			
+			$('#screen').mousedown(function(e){
+				postMouseEvent(e, 'MousePress');
+			});
+			$('#screen').mouseup(function(e){
+				postMouseEvent(e, 'MouseRelease');
 			});	
+			$('#screen').click(function(e){
+//				postMouseEvent('MouseClick');			
+			});	
+			
+			
 			retreiveImage();
 /*			var token = $("meta[name='_csrf']").attr("content");
 			var header = $("meta[name='_csrf_header']").attr("content");

@@ -4,27 +4,24 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.miyake.demo.entities.ConnectorEntity;
@@ -32,7 +29,6 @@ import com.miyake.demo.entities.EquipmentCategoryEntity;
 import com.miyake.demo.entities.EquipmentEntity;
 import com.miyake.demo.entities.EquipmentEntitySimple;
 import com.miyake.demo.entities.MyTesterEntity;
-import com.miyake.demo.entities.MyTesterRelationEntity;
 import com.miyake.demo.entities.PassFailEnum;
 import com.miyake.demo.entities.PortDirectionEntity;
 import com.miyake.demo.entities.PortEntity;
@@ -62,6 +58,8 @@ import com.miyake.demo.entities.UserGroupEntity;
 import com.miyake.demo.jsonobject.DiagramItem;
 import com.miyake.demo.jsonobject.DiagramItemContainer;
 import com.miyake.demo.jsonobject.DiagramItemContainers;
+import com.miyake.demo.jsonobject.EquipmentElementJson;
+import com.miyake.demo.jsonobject.EquipmentNameJson;
 import com.miyake.demo.jsonobject.IdValue;
 import com.miyake.demo.jsonobject.LinkContainer;
 import com.miyake.demo.jsonobject.MouseEventJson;
@@ -73,11 +71,11 @@ import com.miyake.demo.jsonobject.PortTemplate;
 import com.miyake.demo.jsonobject.PortTestJson;
 import com.miyake.demo.jsonobject.PrimitiveRect;
 import com.miyake.demo.jsonobject.ProjectJson;
+import com.miyake.demo.jsonobject.ProjectSummaryJson;
 import com.miyake.demo.jsonobject.TestCaseRequest;
 import com.miyake.demo.jsonobject.TestItemList;
 import com.miyake.demo.jsonobject.TestItemListElement;
 import com.miyake.demo.jsonobject.TestPlan;
-import com.miyake.demo.jsonobject.TestPlan2;
 import com.miyake.demo.jsonobject.TestPlan2Element;
 import com.miyake.demo.jsonobject.TesterJson;
 import com.miyake.demo.jsonobject.WebSocketSignal;
@@ -328,24 +326,54 @@ public class TestRestController {
     			categoryText = categoryText.substring(0, categoryText.length()-1);
     		}
     		
-    		String parentsText = "";
     		List<TesterOptionRelationEntity> parents = this.testerOptionRelationRepository.findByChild(e.getId());
-    		for (TesterOptionRelationEntity parent : parents) {
-    			parentsText += this.testerRepository.getById(parent.getParent()).getProduct_name() + "/";
-    		}
-    		if (parentsText.length() > 0) {
-    			parentsText = parentsText.substring(0, parentsText.length()-1);
-    		}
-    		else {
-    			parentsText = "---";
-    		}
+    		String parentsText = createParentsText(parents);
     		ret.add(new TesterJson(e.getVendor(), e.getId(), e.getProduct_name(), e.getDescription(), e.getProducttype().ordinal(), e.getProducttype().name(), category, categoryText, parentsText));
     	}
     	
     	return ret;
     }
-    
-    @GetMapping("/parentTesterJson")
+
+	private String createParentsText(List<TesterOptionRelationEntity> parents) {
+		List<String> models = new ArrayList<>();
+		for (TesterOptionRelationEntity parent : parents) {
+			models.add(this.testerRepository.getById(parent.getParent()).getProduct_name());
+		}
+		
+		Collections.sort(models);
+		LinkedHashSet<String> shorten = new LinkedHashSet<>();
+		for (String s : models) {
+			shorten.add(s.split("[-/:.]+")[0]);
+		}
+		
+		
+		
+		List<String> shortList = new ArrayList<>();
+		for (String s : shorten) {
+			if (multipleModels(s, models)) {
+				shortList.add(s + "*");
+			}
+			else {
+				shortList.add(s);
+			}
+		}
+		
+		String parentsText = shortList.toString();
+		return parentsText;
+	}
+
+
+	private boolean multipleModels(String s, List<String> models) {
+    	int count = 0;
+    	for (String model:  models) {
+    		if (model.contains(s)) {
+    			count++;
+    		}
+    	}
+		return count > 1;
+	}
+
+	@GetMapping("/parentTesterJson")
     public List<ParentTester> parentTester(@RequestParam(value = "tester", required=true) Long tester, @RequestParam(value = "vendor", required=true) Long vendor) {
     	List<ParentTester> ret = new ArrayList<>();
     	    	
@@ -688,6 +716,53 @@ public class TestRestController {
     	return "OK";
     }
     
+    @PostMapping("/updateEquipment")
+    public String updateEquipment(@RequestBody EquipmentElementJson ej) {
+    	EquipmentEntitySimple equipment = this.equipmentRepositorySimple.getById(ej.id);
+    	
+    	if (ej.field.equals("name")) {
+    		equipment.setName(ej.value);
+    	}
+    	else if (ej.field.equals("address")) {
+    		equipment.setAddress(ej.value);
+    	}
+    	else if (ej.field.equals("category")) {
+    		EquipmentCategoryEntity categoryEntity = this.equipmentCategoryRepository.findByCategory(ej.value);
+    		equipment.setCategory(categoryEntity.getId());
+    	}
+    	this.equipmentRepositorySimple.save(equipment);
+    	return "OK";
+    }
+    
+    @GetMapping("/projectSummaryJson")
+    public List<ProjectSummaryJson> projectsummary(@RequestParam(value = "id", required=true) Long id) {
+    	List<ProjectSummaryJson> ret = new ArrayList<>();
+    	List<EquipmentEntity> equipments = this.equipmentRepository.findByProject(id);
+    	for (EquipmentEntity equipment : equipments) {
+    		String category = "---";
+    		if (equipment.getCategoryEntity() != null) {
+    			category = equipment.getCategoryEntity().getCategory();
+    		}
+    		
+    		String location = "---";
+    		String testStatus = "---";
+    		String ports = "---";
+    		
+    		List<PortEntity> portEntities = this.portRepository.findByEquipment(equipment.getId());
+    		List<String> portNames = new ArrayList<>();
+    		for (PortEntity p : portEntities) {
+    			portNames.add(p.getPort_name());
+    		}
+    		ports = String.valueOf( portNames.size() );
+    		
+    		if (equipment.getAddress() != null) {
+    			location = equipment.getAddress();
+    		}
+    		ret.add(new ProjectSummaryJson(equipment.getId(), category, equipment.getName(), location, ports, testStatus));
+    	}
+    	return ret;
+    }
+    
     @GetMapping("/EquipmentEntityS")
     public List<EquipmentEntity> getEquipments(@RequestParam(value = "parent", required=false) Long parent) {
     	if (parent == null) {
@@ -714,6 +789,17 @@ public class TestRestController {
 //    		test_item.setProject(parent);
 //    	}
     	return equipmentRepository.save(test_item);
+    }
+    
+    @PostMapping("/postEquipmentName")
+    public String postEquipmentName(@RequestBody EquipmentNameJson equipmentName/*, @RequestParam(value = "parent", required=false) Long parent*/) {
+//    	if (parent != null) {
+//    		test_item.setProject(parent);
+//    	}
+    	EquipmentEntitySimple e = this.equipmentRepositorySimple.getById(equipmentName.id);
+    	e.setName(equipmentName.name);
+    	equipmentRepositorySimple.save(e);
+    	return "OK";
     }
     
     @DeleteMapping("/EquipmentEntity")
@@ -921,6 +1007,27 @@ public class TestRestController {
     public EquipmentCategoryEntity createEquipmentCategory(@RequestBody EquipmentCategoryEntity test_item) {
     	return equipmentCategoryRepository.save(test_item);
     }
+
+    @PostMapping("/updateEquipmentCategory")
+    public String updateEquipmentCategory(@RequestBody EquipmentElementJson json) {
+    	EquipmentCategoryEntity entity = null;
+    	
+    	if (json.id == null) {
+    		entity = new EquipmentCategoryEntity();
+    		entity.setCategory(json.value);
+    	}
+    	else {
+    		entity = this.equipmentCategoryRepository.getById(json.id);
+	    	if (json.field.equals("category")) {
+	    		entity.setCategory(json.value);
+	    	}
+	    	else if (json.field.equals("description")) {
+	    		entity.setDescription(json.value);
+	    	}
+    	}
+    	this.equipmentCategoryRepository.save(entity);
+    	return "OK";
+    }
     
     @GetMapping("/ConnectorEntityS")
     public List<ConnectorEntity> connectors() {
@@ -941,7 +1048,7 @@ public class TestRestController {
     public List<ProjectJson> projectsJson(@AuthenticationPrincipal CustomUserDetails userDetails) {
     	List<ProjectJson> ret = new ArrayList<>();
     	for (ProjectEntity e : projectRepository.findByUsergroup(userDetails.getUser().getUsergroup())) {
-    		ret.add(new ProjectJson(e.getId(), e.getName()));
+    		ret.add(new ProjectJson(e.getId(), e.getName(), e.getComment()));
     	}
     	
     	return ret;

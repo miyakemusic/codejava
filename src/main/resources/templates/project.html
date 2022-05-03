@@ -14,6 +14,7 @@
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
 	<script type="text/javascript" th:src="@{/js//mywebsocket.js}"></script>
+	<script type="text/javascript" th:src="@{/js//editabletext.js}"></script>
     <script type="text/javascript" th:src="@{/js/portdetail.js}"></script>
         	
 	<script th:inline="javascript">
@@ -36,7 +37,13 @@
 			})
 			.done(function(data){
 				for (let equipment of data) {				
-					$('#maindiv').append('<div id="' + equipment.id + '"><h2>' + equipment.name + '</h2></div>');
+					//$('#maindiv').append('<div id="' + equipment.id + '"><input type="text" value="' + equipment.name + '">' + '</div>');
+					$('#maindiv').append('<div id="' + equipment.id + '"></div>');
+					
+					new EditableText(equipment.id, equipment.name, function(newText){
+						updateEquipment(equipment.id, newText);
+					}, '1.2em');
+					
 					var table = new PortDetail(equipment.id, equipment.id, 'equipment');
 				}
 			})
@@ -44,7 +51,24 @@
 				alert(errorThrown);
 			});
 			
-  
+			function updateEquipment(id, newName) {
+				var obj = new Object();
+				obj.id = id;
+				obj.name = newName;
+				
+				var json = JSON.stringify(obj);
+				$.ajax({
+					type: "POST",
+					url: "/postEquipmentName",
+					data: json,
+					contentType: "application/json",
+					dataType : "text"
+				}).done(function(data){
+					
+				}).fail(function(XMLHttpRequest, status, e){
+					alert(e);
+				});		
+			}
 /*			var token = $("meta[name='_csrf']").attr("content");
 			var header = $("meta[name='_csrf_header']").attr("content");
 			$(document).ajaxSend(function(e, xhr, options) {

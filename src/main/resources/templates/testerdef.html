@@ -86,9 +86,10 @@
 					{ "sTitle": "Product Name", "mData": "name" },
 					{ "sTitle": "Description", "mData": "description" },
 					{ "sTitle": "Type", "mData": "typeText" },
+					{ "sTitle": "Spec.", "mData": "spec" },
 					{ "sTitle": "Parent(s)", "mData": "parents" },
-					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
-					{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
+//					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
+//					{ "sTitle": "Delete", "mData": null, "sDefaultContent": '<button class="btn-delete">Delete</button>' },
 				],
 				fnCreatedRow : function(nRow, aData, iDataIndex) {
 					var productNameElement = $("td:eq(1)", nRow);
@@ -115,7 +116,7 @@
 					productNameElement.append(button);
 					
 					//
-					var parentElement = $("td:eq(4)", nRow);
+					var parentElement = $("td:eq(5)", nRow);
 					parentElement.text("");
 					var button = $('<button>' + aData.parents + '</button>')
 					.attr("class", "btn btn-link")

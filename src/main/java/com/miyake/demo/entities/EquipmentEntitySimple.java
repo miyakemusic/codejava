@@ -26,6 +26,8 @@ public class EquipmentEntitySimple implements Cloneable {
 	
 	private Integer status;
 
+	private String address;
+	
 	@Override
 	public EquipmentEntitySimple clone() {
 		

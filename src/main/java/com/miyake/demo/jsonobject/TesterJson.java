@@ -15,6 +15,7 @@ public class TesterJson {
 	public Long vendorid;
 	public int type;
 	public String typeText;
+	public String spec;
 	public String parents;
 	
 	public TesterJson() {}
