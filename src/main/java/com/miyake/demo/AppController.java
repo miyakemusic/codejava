@@ -85,6 +85,18 @@ public class AppController {
         return "register_success";
     }
     
+    @GetMapping("/ports")
+    public String ports(Model model, @RequestParam(value = "id", required=true) Long id) {
+        model.addAttribute("equipment", id);
+        return "ports";
+    }
+    
+    @GetMapping("/portsummary")
+    public String portsummary(Model model, @RequestParam(value = "id", required=true) Long id) {
+        model.addAttribute("equipment", id);
+        return "portsummary";
+    }
+    
     @GetMapping("/projects")
     public String projects(Model model) {
         List<ProjectEntitySimple> listProjects = projectRepositorySimple.findAll();

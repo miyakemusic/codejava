@@ -13,6 +13,7 @@
     <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript" th:src="@{/js/portsummary.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
 	<script type="text/javascript">	
 		$(function() {	
@@ -54,20 +55,29 @@
 				            {
 								"targets": 3,
 								"render": function ( data, type, full, meta ) {
-									return '<button class="btn btn-link" name="Name" id="address_' + full.id + '">' + full.address + '</button>';
+									return '<button class="btn btn-link" name="Location" id="Location_' + full.id + '">' + full.address + '</button>';
 								}
 							},	
+				            {
+								"targets": 4,
+								"render": function ( data, type, full, meta ) {
+									return '<a href="portsummary?id=' + full.id + '">' + full.ports + '</a>';
+									//return '<button class="btn btn-link" name="Ports" id="ports_' + full.id + '">' + full.ports + '</button>';
+								}
+							},							
 				        ],
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
 					{ "sTitle": "Category", "mData": "category" },
 					{ "sTitle": "Name", "mData": "name" },
-					{ "sTitle": "Address", "mData": "address" },
+					{ "sTitle": "Location", "mData": "address" },
 					{ "sTitle": "Ports", "mData": "ports" },
-					{ "sTitle": "Test Status", "mData": "testStatus" }
+					{ "sTitle": "Test Status", "mData": "testStatus" },
+					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
 				]
 			});				
 			
+			var portSummary = new PortSummary('portdialog');
 			var selectedId;
 			var selectedField;
 			table.on( 'draw', function () {
@@ -79,19 +89,27 @@
 						$('#categoryOptions').val($(this).text());
 						$("#optiondialog").dialog('open');						
 					}
-					else {
+					else if ($(this).attr('name') == 'Name' || $(this).attr('name') == 'Location'){
 						$('#textfield').val($(this).text());
 						$("#textdialog").dialog('open');						
 					}
-
+					else if ($(this).attr('name') == 'Ports') {
+						//window.open("ports?id=" + selectedId, "_blank");
+						portSummary.update(selectedId);
+						$('#portdialog').dialog('open');
+					}
+				});
+				$('.btn-edit').click(function(){
+					$("#editdialog").dialog('open');
 				});
 			});
 			
+			$('#textfield').css('width', '100%');
 			$("#textdialog").dialog({
 				modal:true,
 				autoOpen: false,
 				title: "",
-				width: 300,
+				width: 400,
 				height: 200,
 				buttons: {
 					"OK": function() {
@@ -154,6 +172,51 @@
 					}
 				}
 			});
+
+			$('#editOptions').append($('<option>').html('Copy').val('copy'));
+			$('#editOptions').append($('<option>').html('Delete').val('delete'));
+			$('#editOptions').change(function(){
+				if ($(this).val() == 'copy') {
+					$('#copyCount').show();
+				}
+				else if ($(this).val() == 'delete') {
+					$('#copyCount').hide();
+				}				
+			});
+			
+			$("#editdialog").dialog({
+				modal:true,
+				autoOpen: false,
+				title: "",
+				width: 300,
+				height: 200,
+				buttons: {
+					"OK": function() {
+						$(this).dialog("close");
+						
+						var obj = new Object();
+						obj.id = selectedId;
+						obj.field = selectedField;
+						obj.value = $('#categoryOptions').val();
+						
+						var json = JSON.stringify(obj);
+						$.ajax({
+							type: "POST",
+							url: "/",
+							data: json,
+							contentType: "application/json",
+							dataType : "text"
+						}).done(function(data){
+							table.ajax.reload();
+						}).fail(function(XMLHttpRequest, status, e){
+							alert(e);
+						});								
+					},
+					"Cancel": function() {
+						$(this).dialog("close");
+					}
+				}
+			});
 			
 			$.ajax({
 				type: "GET",
@@ -168,7 +231,36 @@
 			.fail(function(XMLHttpRequest, textStatus, errorThrown){
 				alert(errorThrown);
 			});
+	
+			$("#portdialog").dialog({
+				modal:true,
+				autoOpen: false,
+				title: "",
+				width: 900,
+				height: 700,
+				buttons: {
+					"OK": function() {
+						$(this).dialog("close");						
+					},
+					"Cancel": function() {
+						$(this).dialog("close");
+					}
+				}
+			});
 			
+			$.ajax({
+				type: "GET",
+				url: "EquipmentCategoryEntityS",
+				dataType : "json"
+			})
+			.done(function(data){ 
+				for (var o of data) {
+					$('#categoryOptions').append($('<option>').html(o.category).val(o.category));
+				}
+			})
+			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+				alert(errorThrown);
+			});
 		});
 	</script>
     <title>Project Summary</title>
@@ -180,5 +272,7 @@
 	<table id="summarytable" class="table table-striped table-bordered"></table>
 	<div id="textdialog"><input type="text" id="textfield"></div>
 	<div id="optiondialog"><select id="categoryOptions"></select></div>
+	<div id="editdialog"><select id="editOptions"></select><input type="text" id="copyCount" value="1"></div>
+	<div id="portdialog"></div>
 </body>
 </html>

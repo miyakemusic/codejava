@@ -67,6 +67,7 @@ import com.miyake.demo.jsonobject.MyTesterJson;
 import com.miyake.demo.jsonobject.MyTesterRegistration;
 import com.miyake.demo.jsonobject.ParentTester;
 import com.miyake.demo.jsonobject.ParentTestersJson;
+import com.miyake.demo.jsonobject.PortSummaryJson;
 import com.miyake.demo.jsonobject.PortTemplate;
 import com.miyake.demo.jsonobject.PortTestJson;
 import com.miyake.demo.jsonobject.PrimitiveRect;
@@ -480,6 +481,23 @@ public class TestRestController {
     	return ret;
     }
 
+    @GetMapping("/portsummaryjson")
+    public List<PortSummaryJson> portsummaryjson(@RequestParam(value = "id", required=true) Long id) {
+    	List<PortSummaryJson> ret = new ArrayList<>();
+    	List<PortEntity> ports = this.portRepository.findByEquipment(id);
+    	for (PortEntity e : ports) {
+    		Set<String> testItems = new LinkedHashSet<>();
+    		Set<String> testPoints = new LinkedHashSet<>();
+    		for (PortTestEntity p : e.getPortTests()) {
+    			testItems.add( p.getTest_itemEntity().getTest_item() );
+    			testPoints.add(p.getDirectionEntity().getName());
+    		}
+    		
+    		ret.add(new PortSummaryJson(e.getId(), e.getPort_name(), testPoints.toString(), testItems.toString()));
+    	}
+    	return ret;
+    }
+    
     @PostMapping("/PortTestJson")
     public PortTestEntitySimple postPortTestJson(@RequestBody PortTestJson port_test) {
     	PortTestEntitySimple entity = this.portTestRepositorySimple.getById(port_test.id);

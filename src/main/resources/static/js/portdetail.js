@@ -32,7 +32,7 @@ class PortDetail {
 			"aoColumns": [
 				{ "sTitle": "ID", "mData": "test_itemEntity.id" },
 				{ "sTitle": "Port", "mData": "port_name" },
-				{ "sTitle": "Direction", "mData": "directionEntity.name" },
+				{ "sTitle": "Test Point", "mData": "directionEntity.name" },
 				{ "sTitle": "Category", "mData": "test_itemEntity.categoryEntity.category"},
 				{ "sTitle": "Test Item", "mData": "test_itemEntity.test_item"},
 				{ "sTitle": "Criteria", "mData": "criteria"},
