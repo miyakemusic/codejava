@@ -1582,7 +1582,7 @@ public class TestRestController {
     public String requestOtherTester(@RequestBody TestPlan2Element element) throws JsonProcessingException {
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.RequestTest, element);
     	TextMessage json = new TextMessage(new ObjectMapper().writeValueAsString(signal));
-    	this.messageHandler.getSessions().forEach(ws -> {
+    	this.messageHandler.getTesterSessions().forEach(ws -> {
     		try {
 				ws.sendMessage(json);
 			} catch (IOException e) {
@@ -1753,7 +1753,21 @@ public class TestRestController {
 	public String getImage(@RequestParam(value = "name", required=true) String name) throws IOException {
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.RequestImage, null);
     	TextMessage json = new TextMessage(new ObjectMapper().writeValueAsString(signal));
-    	this.messageHandler.getSessions().forEach(ws -> {
+    	this.messageHandler.getTesterSessions().forEach(ws -> {
+    		try {
+				ws.sendMessage(json);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	});
+    	return "OK";
+	} 
+	
+	@GetMapping("/stopRequestImage")
+	public String stopRequestImage(@RequestParam(value = "name", required=true) String name) throws IOException {
+    	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.StopRequestImage, null);
+    	TextMessage json = new TextMessage(new ObjectMapper().writeValueAsString(signal));
+    	this.messageHandler.getTesterSessions().forEach(ws -> {
     		try {
 				ws.sendMessage(json);
 			} catch (IOException e) {
@@ -1766,7 +1780,7 @@ public class TestRestController {
 	@GetMapping("/screenImage")
 	public String screenImage(@RequestParam(value = "name", required=true) String name) throws IOException {
 		if (TesterRestController.image != null) {
-			return TesterRestController.image;
+			return TesterRestController.image.get(name);
 		}
 		else {
 			return "";
@@ -1778,7 +1792,7 @@ public class TestRestController {
 		System.out.println("x=" + mouseEvent.x + ", y=" + mouseEvent.y);
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.MouseEvent, mouseEvent);
     	TextMessage json = new TextMessage(new ObjectMapper().writeValueAsString(signal));
-    	this.messageHandler.getSessions().forEach(ws -> {
+    	this.messageHandler.getTesterSessions().forEach(ws -> {
     		try {
 				ws.sendMessage(json);
 			} catch (IOException e) {

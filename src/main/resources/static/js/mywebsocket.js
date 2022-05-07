@@ -1,5 +1,5 @@
 class MyWebSocket {
-	constructor(callback) {
+	constructor(callback, onClose) {
 		var connection = new WebSocket('ws://' + window.location.host + '/ws');
 		connection.onopen = function(e) {
 			console.log(e);
@@ -12,6 +12,7 @@ class MyWebSocket {
 			callback(obj);
 		}
 		connection.onclose = function() {
+			onClose();
 			console.log('websocket closed');
 		}
 	}

@@ -10,8 +10,10 @@ public class WebSocketSignal {
 		ResultUpdated,
 		RequestTest, 
 		RequestImage, 
+		StopRequestImage,
 		ImageReady, 
-		MouseEvent	
+		MouseEvent, 
+		
 	}
 	private SignalType signalType;
 	private Object object;

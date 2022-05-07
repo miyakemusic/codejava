@@ -52,24 +52,53 @@
 					alert(errorThrown);
 				});				
 			}
-			var ws = new MyWebSocket(function(obj){
-				if (obj.signalType == 'ImageReady') {
-					$.ajax({
-						type: "GET",
-						url: "screenImage?name=" + name,
-						dataType : "text"
-					})
-					.done(function(data){ 
-						var img = document.getElementById("screen");
-//						img.src = "data:image/jpeg;base64," + window.btoa(data);
-						img.src = "data:image/jpeg;base64," + data;
-
-					})
-					.fail(function(XMLHttpRequest, textStatus, errorThrown){
-						alert(errorThrown);
-					});		
-				}			
+			var ws = new MyWebSocket(
+				function(obj){
+					if (obj.signalType == 'ImageReady') {
+						$.ajax({
+							type: "GET",
+							url: "screenImage?name=" + name,
+							dataType : "text"
+						})
+						.done(function(data){ 
+							var img = document.getElementById("screen");
+	//						img.src = "data:image/jpeg;base64," + window.btoa(data);
+							img.src = "data:image/jpeg;base64," + data;
+	
+						})
+						.fail(function(XMLHttpRequest, textStatus, errorThrown){
+							alert(errorThrown);
+						});		
+					}			
+				}, 
+				function(){
+					stopRequestImage();
+				}
+			);
+			
+			$('#stop').click(function(){
+				stopRequestImage();
 			});
+			
+			$(window).on('beforeunload', function() {
+				stopRequestImage();
+				return "Close?";
+			});
+			
+			function stopRequestImage() {
+				$.ajax({
+					type: "GET",
+					url: "stopRequestImage?name=" + name,
+					dataType : "text",
+//					async: false
+				})
+				.done(function(data){ 
+					
+				})
+				.fail(function(XMLHttpRequest, textStatus, errorThrown){
+					alert(errorThrown);
+				});				
+			}
 			
 			function postMouseEvent(e, mouseType) {
 				var obj = new Object();
@@ -120,6 +149,7 @@
 <body>
 	<div id="headerDiv"></div>
     <h1 th:text="${tester}"></h1>
+    <button id="stop">Stop</button>
     <div id="maindiv"><img id="screen" src=""></div>
 </body>
 </html>

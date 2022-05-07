@@ -2,7 +2,9 @@ package com.miyake.demo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +72,7 @@ public class TesterRestController {
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.Signin, entity);
     	try {
 	    	TextMessage message = new TextMessage(new ObjectMapper().writeValueAsString(signal));
-	    	for (WebSocketSession s: this.messageHandler.getSessions()) {
+	    	for (WebSocketSession s: this.messageHandler.getBrowserSessions()) {
 	    		s.sendMessage(message);
 	    	}
     	}
@@ -132,7 +134,7 @@ public class TesterRestController {
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.Signout, entity);
     	try {
 	    	TextMessage message = new TextMessage(new ObjectMapper().writeValueAsString(signal));
-	    	for (WebSocketSession s: this.messageHandler.getSessions()) {
+	    	for (WebSocketSession s: this.messageHandler.getBrowserSessions()) {
 	    		s.sendMessage(message);
 	    	}
     	}
@@ -152,7 +154,7 @@ public class TesterRestController {
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.ResultUpdated, result);
     	try {
 	    	TextMessage message = new TextMessage(new ObjectMapper().writeValueAsString(signal));
-	    	for (WebSocketSession s: this.messageHandler.getSessions()) {
+	    	for (WebSocketSession s: this.messageHandler.getBrowserSessions()) {
 	    		s.sendMessage(message);
 	    	}
     	}
@@ -170,14 +172,14 @@ public class TesterRestController {
     	return "OK";
     }
     
-    public static String image;
+    public static Map<String, String> image = new HashMap<>();
     @PostMapping("screen")
-    public String postImage(@RequestBody ImageJson image) {
-    	TesterRestController.image = Base64.encodeBase64String(image.image);
+    public String postImage(@AuthenticationPrincipal CustomTesterDetails userDetails, @RequestBody ImageJson image) {
+    	TesterRestController.image.put(userDetails.getUsername(), Base64.encodeBase64String(image.image));
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.ImageReady, null);
     	try {
 	    	TextMessage message = new TextMessage(new ObjectMapper().writeValueAsString(signal));
-	    	for (WebSocketSession s: this.messageHandler.getSessions()) {
+	    	for (WebSocketSession s: this.messageHandler.getBrowserSessions()) {
 	    		s.sendMessage(message);
 	    	}
     	}
