@@ -12,45 +12,10 @@
 	<link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
     <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>    
-
+	<script type="text/javascript" th:src="@{/js/mytextdialog.js}"></script>
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
-	<script th:inline="javascript">
-		class MyDialog {
-			constructor(div, okClicked) {
-				this.dialogDiv = div + '_dialog';
-				this.textDiv = div + '_text';
-				$('#' + div).append('<div id="' + this.dialogDiv + '"></div>');
-				$('#' + this.dialogDiv).append('<input type="text" id="' + this.textDiv + '">');
-				$('#' + this.textDiv).css("width", "100%");
-				
-				var me = this;
-				
-				$("#" + this.dialogDiv).dialog({
-					modal:true,
-					autoOpen: false,
-					title: "",
-					width: 300,
-					height: 200,
-					buttons: {
-						"OK": function() {
-							$(this).dialog("close");
-							var v = $('#' + me.textDiv).val();
-							okClicked(v);							
-						},
-						"Cancel": function() {
-							$(this).dialog("close");
-						}
-					}
-				});				
-			}
-			
-			show(defaultVal) {
-				$('#' + this.textDiv).val(defaultVal);
-				$("#" + this.dialogDiv).dialog('open');
-			}
-		}
-		
+	<script th:inline="javascript">		
 		$(function() {	
 			$.ajax({
 				type: "GET",
@@ -96,7 +61,7 @@
 				]
 			});		
 			
-			var dialog = new MyDialog('dialog', function(val){
+			var dialog = new MyTextDialog('dialog', function(val){
 				var obj = new Object();
 				obj.id = selectedId;
 				obj.field = selectedField;

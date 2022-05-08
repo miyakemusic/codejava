@@ -132,6 +132,7 @@ class DiagramCanvas {
 							var id2 = currentButton.attr('id');
 							if (id1 != id2) {
 								me.onLink(id1, id2);
+								me.tentativeCtx.clearRect(0, 0, me.canvas_width, me.canvas_height);
 							}
 							else {
 								me.onClick(id1, $(this).attr('value'));

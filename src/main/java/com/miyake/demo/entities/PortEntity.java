@@ -46,10 +46,6 @@ public class PortEntity {
     @JoinColumn(name = "connector_type", insertable = false, updatable = false, nullable = true)
     private ConnectorEntity connector_typeEntity;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "equipment", insertable = false, updatable = false, nullable = true)
-//    private EquipmentEntity equipmentEntity;
-    
     @Override
     public String toString() {
     	String ret = "";

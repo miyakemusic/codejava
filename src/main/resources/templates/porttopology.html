@@ -40,6 +40,7 @@
 			});
 			var ids = Array.of([[${parent}]]);
    			var diagram = new DiagramCanvas('forClass');
+   			diagram.modeLink();
    			
    			var me = this;
 		   			
@@ -61,22 +62,38 @@
 				});
 				
     		});
-		    		
-			$.ajax({
-				type: "GET",
-				url: "portDiagram?parent=" + ids,
-				dataType : "json"
-			})
-			.done(function(data){
-				diagram.setData(data);
-			})
-			.fail(function(XMLHttpRequest, textStatus, errorThrown){
-				alert(errorThrown);
-			});
-				
-			for (var id of ids) {
-
-			}
+		    
+    		diagram.onLink(function(id1, id2) {
+    			$.ajax({
+    				type: "GET",
+    				url: "linkport?port1=" + id1 + "&port2=" + id2,
+    				dataType : "text"
+    			})
+    			.done(function(data){
+    				updateDiagram();
+    			})
+    			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+    				alert(errorThrown);
+    			});   			
+    			
+    			
+    		});
+    		
+    		function updateDiagram() {
+    			$.ajax({
+    				type: "GET",
+    				url: "portDiagram?parent=" + ids,
+    				dataType : "json"
+    			})
+    			.done(function(data){
+    				diagram.setData(data);
+    			})
+    			.fail(function(XMLHttpRequest, textStatus, errorThrown){
+    				alert(errorThrown);
+    			});    			
+    		}
+    		
+    		updateDiagram();
 		});
 	</script>
     <title>Equipment Diagram</title>

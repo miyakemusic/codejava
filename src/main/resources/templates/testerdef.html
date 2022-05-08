@@ -67,7 +67,7 @@
 				table.destroy();
 				$('#table').remove();
 			}
-			$('#main').append('<table id="testersTable"></table>');
+			$('#main').append('<table id="testersTable" class="table table-striped table-bordered"></table>');
 			
 			table = $('#testersTable').DataTable({
 				"iDisplayLength": 50,
@@ -569,7 +569,7 @@
 	</div>
 	<div id="categoryEditDialog">
 		<button id="addnewCategory">Add Category</button>
-		<table id="categoryEidtTable"></table>
+		<table id="categoryEidtTable" class="table table-striped table-bordered"></table>
 		<div id="newCategoryDialog">
 			<div>New Category<input type="text" id="newCategoryText"></div>
 			<div>New Category Full Name<input type="text" id="newCategoryFullText"></div>
@@ -581,7 +581,7 @@
 	</div>
 	<div id="parentEditDiv">
 		<button id="parentEditSelectAll">Select All</button><button id="parentEditClearAll">Clear All</button>
-		<table id="parentEditTable"></table>
+		<table id="parentEditTable" class="table table-striped table-bordered"></table>
 	</div>
 	<div id="main"></div>
 </body>

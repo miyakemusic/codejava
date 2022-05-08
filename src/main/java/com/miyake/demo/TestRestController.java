@@ -58,7 +58,7 @@ import com.miyake.demo.entities.UserGroupEntity;
 import com.miyake.demo.jsonobject.DiagramItem;
 import com.miyake.demo.jsonobject.DiagramItemContainer;
 import com.miyake.demo.jsonobject.DiagramItemContainers;
-import com.miyake.demo.jsonobject.EquipmentElementJson;
+import com.miyake.demo.jsonobject.ElementJson;
 import com.miyake.demo.jsonobject.EquipmentNameJson;
 import com.miyake.demo.jsonobject.IdValue;
 import com.miyake.demo.jsonobject.LinkContainer;
@@ -67,6 +67,7 @@ import com.miyake.demo.jsonobject.MyTesterJson;
 import com.miyake.demo.jsonobject.MyTesterRegistration;
 import com.miyake.demo.jsonobject.ParentTester;
 import com.miyake.demo.jsonobject.ParentTestersJson;
+import com.miyake.demo.jsonobject.EquipmentEditJson;
 import com.miyake.demo.jsonobject.PortSummaryJson;
 import com.miyake.demo.jsonobject.PortTemplate;
 import com.miyake.demo.jsonobject.PortTestJson;
@@ -226,8 +227,14 @@ public class TestRestController {
     @DeleteMapping("/PortEntity")
     public String deletePort(@RequestParam(value = "id", required=true) Long id) {
     	this.portPresentationRepository.deleteByPort(id);
+    	
+    	List<PortEntity> opposites = this.portRepository.findByOpposite(id);
+    	for (PortEntity o : opposites) {
+    		o.setOpposite(null);
+    		this.portRepository.save(o);
+    	}
     	this.portRepository.deleteById(id);
-
+    	
     	return "OK";
     }
     
@@ -245,6 +252,39 @@ public class TestRestController {
 //    	port.setEquipment(parent);
     	this.portRepository.save(port);
     	return port;
+    }
+    
+    @PostMapping("/editProjectSummary")
+    public String editProjectSummary(@RequestBody EquipmentEditJson equipmentEditJson) {
+    	if (equipmentEditJson.editType.equals("copy")) {
+    		this.copyEquipment(equipmentEditJson.id, equipmentEditJson.count);
+    	}
+    	else if (equipmentEditJson.editType.equals("delete")) {
+//    		this.equipmentRepository.deleteById(equipmentEditJson.id);
+    		this.deleteequiement(equipmentEditJson.id);
+    	}
+    	return "OK";
+    }
+    
+    @PostMapping("/editPort")
+    public String editPort(@RequestBody EquipmentEditJson portEditJson) {
+    	if (portEditJson.editType.equals("copy")) {
+    		//this.copyEquipment(portEditJson.id, portEditJson.count);
+    	}
+    	else if (portEditJson.editType.equals("delete")) {
+    		//this.equipmentRepository.deleteById(portEditJson.id);
+    		this.deletePort(portEditJson.id);
+    	}
+    	return "OK";
+    }
+    
+    @PostMapping("/portName")
+    public String portName(@RequestBody ElementJson element) {
+    	PortEntity portEntity = this.portRepository.getById(element.id);
+    	portEntity.setPort_name(element.value);
+    	this.portRepository.save(portEntity);
+    	
+    	return "OK";
     }
     
     @GetMapping("/PortEntitySimpleS")
@@ -486,14 +526,23 @@ public class TestRestController {
     	List<PortSummaryJson> ret = new ArrayList<>();
     	List<PortEntity> ports = this.portRepository.findByEquipment(id);
     	for (PortEntity e : ports) {
+    		String linkEquipment = "";
+    		String linkPort = "";
+    		if (e.getOpposite() != null) {
+    			PortEntity oppositePortEntity = this.portEntity(e.getOpposite());
+    			EquipmentEntity oppositeEquipment = this.equipmentRepository.getById(oppositePortEntity.getEquipment());
+    			linkEquipment = oppositeEquipment.getName();
+    			linkPort = oppositePortEntity.getPort_name();
+    		}
     		Set<String> testItems = new LinkedHashSet<>();
     		Set<String> testPoints = new LinkedHashSet<>();
     		for (PortTestEntity p : e.getPortTests()) {
     			testItems.add( p.getTest_itemEntity().getTest_item() );
     			testPoints.add(p.getDirectionEntity().getName());
+    			
     		}
     		
-    		ret.add(new PortSummaryJson(e.getId(), e.getPort_name(), testPoints.toString(), testItems.toString()));
+    		ret.add(new PortSummaryJson(e.getId(), e.getPort_name(), linkEquipment, linkPort, testPoints.toString(), testItems.toString()));
     	}
     	return ret;
     }
@@ -735,7 +784,7 @@ public class TestRestController {
     }
     
     @PostMapping("/updateEquipment")
-    public String updateEquipment(@RequestBody EquipmentElementJson ej) {
+    public String updateEquipment(@RequestBody ElementJson ej) {
     	EquipmentEntitySimple equipment = this.equipmentRepositorySimple.getById(ej.id);
     	
     	if (ej.field.equals("name")) {
@@ -851,7 +900,7 @@ public class TestRestController {
 
 	@GetMapping("/copyEquipment")
     public EquipmentEntitySimple copyEquipment(@RequestParam(value = "id", required=true) Long id, 
-    		@RequestParam(value = "number", required=false) Integer number) {
+    		@RequestParam(value = "number", required=true) Integer number) {
 
     	EquipmentEntitySimple equipment = this.equipmentRepositorySimple.getById(id);
     	EquipmentPresentationEntity equipmentPresentation = this.equipmentPresentationRepository.findByEquipment(id);
@@ -886,8 +935,6 @@ public class TestRestController {
 	    			PortTestEntitySimple newPortTest = portTest.clone();
 	    			newPortTest.setPort(newPort.getId());
 	    			this.portTestRepositorySimple.save(newPortTest);
-	    			
-	    			
 	    		}
 	    	}
     	}
@@ -1027,7 +1074,7 @@ public class TestRestController {
     }
 
     @PostMapping("/updateEquipmentCategory")
-    public String updateEquipmentCategory(@RequestBody EquipmentElementJson json) {
+    public String updateEquipmentCategory(@RequestBody ElementJson json) {
     	EquipmentCategoryEntity entity = null;
     	
     	if (json.id == null) {
@@ -1651,9 +1698,16 @@ public class TestRestController {
 			List<PortEntitySimple> ports = this.portRepositorySimple.findByEquipment(equipment.getId());
 			for (PortEntitySimple port: ports) {
 				if (port.getOpposite() != null) {
-					PortEntitySimple oppositePort = this.portRepositorySimple.getById(port.getOpposite());
-					linkContainer.add(equipment.getId(), oppositePort.getEquipment());
+					if (this.portRepositorySimple.existsById(port.getOpposite())) {
+						PortEntitySimple oppositePort = this.portRepositorySimple.getById(port.getOpposite());
+						linkContainer.add(equipment.getId(), oppositePort.getEquipment());
+					}
+					else {
+						port.setOpposite(null);
+						this.portRepositorySimple.save(port);
+					}
 				}
+					
 			}
 		}
 		

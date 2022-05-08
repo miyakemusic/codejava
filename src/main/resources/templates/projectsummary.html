@@ -13,6 +13,7 @@
     <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript" th:src="@{/js/mytextdialog.js}"></script>
 	<script type="text/javascript" th:src="@{/js/portsummary.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
 	<script type="text/javascript">	
@@ -55,16 +56,23 @@
 				            {
 								"targets": 3,
 								"render": function ( data, type, full, meta ) {
-									return '<button class="btn btn-link" name="Location" id="Location_' + full.id + '">' + full.address + '</button>';
+									return '<button class="btn btn-link" name="Location" id="address_' + full.id + '">' + full.address + '</button>';
 								}
 							},	
 				            {
 								"targets": 4,
 								"render": function ( data, type, full, meta ) {
-									return '<a href="portsummary?id=' + full.id + '">' + full.ports + '</a>';
+									return '<a href="portsummary?id=' + full.id + '" target=”_blank”>' + full.ports + '</a>';
 									//return '<button class="btn btn-link" name="Ports" id="ports_' + full.id + '">' + full.ports + '</button>';
 								}
-							},							
+							},	
+				            {
+								"targets": 6,
+								"render": function ( data, type, full, meta ) {
+									//return '<a href="portsummary?id=' + full.id + '">' + full.ports + '</a>';
+									return '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">Edit</button>';
+								}
+							},	
 				        ],
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
@@ -73,7 +81,8 @@
 					{ "sTitle": "Location", "mData": "address" },
 					{ "sTitle": "Ports", "mData": "ports" },
 					{ "sTitle": "Test Status", "mData": "testStatus" },
-					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit">Edit</button>' },
+					{ "sTitle": "Edit", "mData": null },
+//					{ "sTitle": "Edit", "mData": null, "sDefaultContent": '<button class="btn-edit" id="edit_' + full.id + + '">Edit</button>' },
 				]
 			});				
 			
@@ -100,6 +109,10 @@
 					}
 				});
 				$('.btn-edit').click(function(){
+					selectedId = $(this).attr('id').split('_')[1];
+					selectedField = $(this).attr('id').split('_')[0];
+					
+//					$("#editdialog").dialog({ title: $(this).attr('name')});
 					$("#editdialog").dialog('open');
 				});
 			});
@@ -196,13 +209,13 @@
 						
 						var obj = new Object();
 						obj.id = selectedId;
-						obj.field = selectedField;
-						obj.value = $('#categoryOptions').val();
+						obj.count = $('#copyCount').val();
+						obj.editType = $('#editOptions').val();
 						
 						var json = JSON.stringify(obj);
 						$.ajax({
 							type: "POST",
-							url: "/",
+							url: "/editProjectSummary",
 							data: json,
 							contentType: "application/json",
 							dataType : "text"
