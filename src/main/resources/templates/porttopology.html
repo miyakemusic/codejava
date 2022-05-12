@@ -78,6 +78,32 @@
     			
     			
     		});
+
+    		
+    		diagram.onMove(function(i, x, y, w, h) {
+    			console.log('x=' + x + ', y=' + y);
+    			var obj = new Object();
+    			obj.id = i;
+    			obj.x = x;
+    			obj.y = y;
+    			obj.width = w;
+    			obj.height = h;
+
+	 			$.ajax({
+					type: "POST",
+					url: "PortPresentationRect",
+					contentType: 'application/json',
+					dataType : "json",
+					data : JSON.stringify(obj)
+				})
+				.done(function(data){
+					console.log(data);
+					updateDiagram();
+				})
+				.fail(function(XMLHttpRequest, textStatus, errorThrown){
+					alert(errorThrown);
+				});   			
+    		});
     		
     		function updateDiagram() {
     			$.ajax({
@@ -94,6 +120,16 @@
     		}
     		
     		updateDiagram();
+    		
+    		$('#editTypeMove').click(function() {
+    			diagram.modeMove();
+    		});
+    		$('#editTypeLink').click(function() {
+    			diagram.modeLink();
+    		});
+    		$('#editTypeTestItem').click(function() {
+    			
+    		});
 		});
 	</script>
     <title>Equipment Diagram</title>
@@ -101,7 +137,14 @@
 <body>
 	<div id="headerDiv"></div>
     <h1 th:text="${title}"></h1>
+    
+    <div>
+    	<input type="radio" id="editTypeLink" name="editType" checked><label for="editTypeLink">Link</label>
+    	<input type="radio" id="editTypeMove" name="editType"><label for="editTypeMove">Move</label>
+    	<input type="radio" id="editTypeTestItem" name="editType"><label for="editTypeTestItem">Test Items</label>
+    </div>
     <div id="forClass"></div>
     <div id="dialog"></div>
+
 </body>
 </html>

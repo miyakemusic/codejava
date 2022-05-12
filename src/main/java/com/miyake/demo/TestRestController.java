@@ -30,6 +30,7 @@ import com.miyake.demo.entities.EquipmentEntity;
 import com.miyake.demo.entities.EquipmentEntitySimple;
 import com.miyake.demo.entities.MyTesterEntity;
 import com.miyake.demo.entities.PassFailEnum;
+import com.miyake.demo.entities.PortCategoryEntity;
 import com.miyake.demo.entities.PortDirectionEntity;
 import com.miyake.demo.entities.PortEntity;
 import com.miyake.demo.entities.PortEntitySimple;
@@ -68,6 +69,7 @@ import com.miyake.demo.jsonobject.MyTesterRegistration;
 import com.miyake.demo.jsonobject.ParentTester;
 import com.miyake.demo.jsonobject.ParentTestersJson;
 import com.miyake.demo.jsonobject.EquipmentEditJson;
+import com.miyake.demo.jsonobject.EquipmentJson;
 import com.miyake.demo.jsonobject.PortSummaryJson;
 import com.miyake.demo.jsonobject.PortTemplate;
 import com.miyake.demo.jsonobject.PortTestJson;
@@ -87,6 +89,7 @@ import com.miyake.demo.repository.EquipmentRepository;
 import com.miyake.demo.repository.EquipmentRepositorySimple;
 import com.miyake.demo.repository.MyTesterRelationRepository;
 import com.miyake.demo.repository.MyTesterRepository;
+import com.miyake.demo.repository.PortCategoryRepository;
 import com.miyake.demo.repository.PortDirectionRepository;
 import com.miyake.demo.repository.PortPresentationRepository;
 import com.miyake.demo.repository.PortRepository;
@@ -157,6 +160,9 @@ public class TestRestController {
     @Autowired
     private EquipmentCategoryRepository equipmentCategoryRepository;
 
+    @Autowired
+    private PortCategoryRepository portCategoryRepository;
+    
     @Autowired
     private ConnectorRepository connectorRepository;
     
@@ -858,6 +864,41 @@ public class TestRestController {
     	return equipmentRepository.save(test_item);
     }
     
+    @PostMapping("/createEquipments")
+    public String createEquipments(@RequestBody EquipmentJson json) {
+    	Long projectid = json.project;
+    	int width = 100;
+    	int height = 30;
+    	
+    	int serial = 0;
+    	String baseName = "";
+    	boolean serialEnabled = false;
+    	if (json.name.contains("#")) {
+    		serialEnabled = true;
+    		
+    		String[] tmp = json.name.split("#");
+    		if (tmp.length > 1) {
+    			serial = Integer.valueOf(tmp[tmp.length-1]);
+    		}
+    		baseName = tmp[0];
+    	}
+    	else {
+    		baseName = json.name;
+    	}
+    	
+    	for (int i = 0; i < json.count; i++) {
+    		String name = "";
+    		if (serialEnabled) {
+    			name = baseName + "#" + String.format("%02d", serial);
+    			serial++;
+    		}
+    		else {
+    			name = baseName;
+    		}
+        	EquipmentEntitySimple equipmentEntity = createEquipment(projectid, json.category, name, 0, i * height, width, height);
+    	}
+    	return "OK";
+    }
     @PostMapping("/postEquipmentName")
     public String postEquipmentName(@RequestBody EquipmentNameJson equipmentName/*, @RequestParam(value = "parent", required=false) Long parent*/) {
 //    	if (parent != null) {
@@ -975,6 +1016,42 @@ public class TestRestController {
 		}
 	}
 	
+    @PostMapping("/createPorts")
+    public String createPorts(@RequestBody EquipmentJson json) {
+    	Long equipment = json.project;
+    	int width = 100;
+    	int height = 30;
+    	
+    	int serial = 0;
+    	String baseName = "";
+    	boolean serialEnabled = false;
+    	if (json.name.contains("#")) {
+    		serialEnabled = true;
+    		
+    		String[] tmp = json.name.split("#");
+    		if (tmp.length > 1) {
+    			serial = Integer.valueOf(tmp[tmp.length-1]);
+    		}
+    		baseName = tmp[0];
+    	}
+    	else {
+    		baseName = json.name;
+    	}
+    	
+    	for (int i = 0; i < json.count; i++) {
+    		String name = "";
+    		if (serialEnabled) {
+    			name = baseName + "#" + String.format("%02d", serial);
+    			serial++;
+    		}
+    		else {
+    			name = baseName;
+    		}
+        	this.createPort(equipment, json.category, name, 0, i * height, width, height);
+    	}
+    	return "OK";
+    }
+    
     @GetMapping("/copyPort")
     public PortEntitySimple copyPort(@RequestParam(value = "id", required=true) Long id, @RequestParam(value = "number", required=false) Integer number) {
     	PortEntitySimple original = this.portRepositorySimple.getById(id);
@@ -1008,41 +1085,63 @@ public class TestRestController {
     
     @GetMapping("/createEquipment")
     public EquipmentEntitySimple createEquipment(@RequestParam(value = "projectid", required=true) Long projectid) {
-    	EquipmentEntitySimple equipmentEntity = new EquipmentEntitySimple();
-    	equipmentEntity.setProject(projectid);
-    	equipmentEntity.setName("Untitled");
-    	this.equipmentRepositorySimple.save(equipmentEntity);
+    	String name = "Untitled";
+    	int x = 0;
+    	int y = 0;
+    	int width = 100;
+    	int height = 30;
     	
-    	EquipmentPresentationEntity presentation = new EquipmentPresentationEntity();
-    	presentation.setX(0);
-    	presentation.setY(0);
-    	presentation.setWidth(100);
-    	presentation.setHeight(30);
-    	
-    	presentation.setEquipment(equipmentEntity.getId());
-    	this.equipmentPresentationRepository.save(presentation);
+    	EquipmentEntitySimple equipmentEntity = createEquipment(projectid, 1L, name, x, y, width, height);
     	
     	return equipmentEntity;
     }
+
+	private EquipmentEntitySimple createEquipment(Long projectid, Long category, String name, int x, int y, int width, int height) {
+		EquipmentEntitySimple equipmentEntity = new EquipmentEntitySimple();
+    	equipmentEntity.setProject(projectid);
+    	equipmentEntity.setCategory(category);
+    	equipmentEntity.setName(name);
+    	this.equipmentRepositorySimple.save(equipmentEntity);
+    	
+    	EquipmentPresentationEntity presentation = new EquipmentPresentationEntity();
+    	presentation.setX(x);
+    	presentation.setY(y);
+    	presentation.setWidth(width);
+    	presentation.setHeight(height);
+    	presentation.setEquipment(equipmentEntity.getId());
+    	this.equipmentPresentationRepository.save(presentation);
+		return equipmentEntity;
+	}
     
     @GetMapping("/createPort")
     public PortEntitySimple createPort(@RequestParam(value = "equipmentid", required=true) Long equipmentid) {
-    	PortEntitySimple portEntity = new PortEntitySimple();
+    	String name = "Untitled Port";
+    	int x = 0;
+    	int y = 0;
+    	int width = 100;
+    	int height = 30;
+    	
+    	PortEntitySimple portEntity = createPort(equipmentid, 1L, name, x, y, width, height);
+    	
+    	return portEntity;
+    }
+
+	private PortEntitySimple createPort(Long equipmentid, Long category, String name, int x, int y, int width, int height) {
+		PortEntitySimple portEntity = new PortEntitySimple();
     	portEntity.setEquipment(equipmentid);
-    	portEntity.setPort_name("Untitled Port");
+    	portEntity.setPort_name(name);
     	this.portRepositorySimple.save(portEntity);
     	
     	PortPresentationEntity presentation = new PortPresentationEntity();
     	presentation.setPort(portEntity.getId());
-    	presentation.setX(0);
-    	presentation.setY(0);
-    	presentation.setWidth(100);
-    	presentation.setHeight(30);
+    	presentation.setX(x);
+    	presentation.setY(y);
+    	presentation.setWidth(width);
+    	presentation.setHeight(height);
     	
     	this.portPresentationRepository.save(presentation);
-    	
-    	return portEntity;
-    }
+		return portEntity;
+	}
     
     @GetMapping("/renameEquipment")
     public String renameEquipment(@RequestParam(value = "id", required=true) Long id, @RequestParam(value = "name", required=true) String name) {
@@ -1091,6 +1190,32 @@ public class TestRestController {
 	    	}
     	}
     	this.equipmentCategoryRepository.save(entity);
+    	return "OK";
+    }
+    
+    @GetMapping("/PortCategoryEntityS")
+    public List<PortCategoryEntity> PortCategoryEntityS() {
+    	return this.portCategoryRepository.findAll();
+    }
+    
+    @PostMapping("/updatePortCategory")
+    public String updatePortCategory(@RequestBody ElementJson json) {
+    	PortCategoryEntity entity = null;
+    	
+    	if (json.id == null) {
+    		entity = new PortCategoryEntity();
+    		entity.setCategory(json.value);
+    	}
+    	else {
+    		entity = this.portCategoryRepository.getById(json.id);
+	    	if (json.field.equals("category")) {
+	    		entity.setCategory(json.value);
+	    	}
+	    	else if (json.field.equals("description")) {
+	    		entity.setDescription(json.value);
+	    	}
+    	}
+    	this.portCategoryRepository.save(entity);
     	return "OK";
     }
     
@@ -1431,7 +1556,7 @@ public class TestRestController {
     }
     
     @PostMapping("/EquipmentPresentationRect")
-    public EquipmentPresentationEntity uiposition2(@RequestBody PrimitiveRect obj) {
+    public EquipmentPresentationEntity EquipmentPresentationRect(@RequestBody PrimitiveRect obj) {
     	System.out.println(obj.toString());
     	EquipmentPresentationEntity entity = this.equipmentPresentationRepository.findByEquipment(obj.id);
     	entity.setX(obj.x);
@@ -1439,6 +1564,17 @@ public class TestRestController {
     	entity.setWidth(obj.width);
     	entity.setHeight(obj.height);
     	return this.equipmentPresentationRepository.save(entity);
+    } 
+    
+    @PostMapping("/PortPresentationRect")
+    public PortPresentationEntity PortPresentationRect(@RequestBody PrimitiveRect obj) {
+    	System.out.println(obj.toString());
+    	PortPresentationEntity entity = this.portPresentationRepository.findByPort(obj.id);
+    	entity.setX(obj.x);
+    	entity.setY(obj.y);
+    	entity.setWidth(obj.width);
+    	entity.setHeight(obj.height);
+    	return this.portPresentationRepository.save(entity);
     } 
     
     @GetMapping("/PortPresentationEntityS")
@@ -1710,17 +1846,14 @@ public class TestRestController {
 					
 			}
 		}
-		
-		//ret.setLinks(linkContainer.calc());
-		ret.pack(linkContainer);
+
+		//ret.pack(linkContainer);
+		ret.createLink(linkContainer);
 		return ret;
 	}
 	
 	@GetMapping("/portDiagram")
 	public DiagramItemContainers portDiagram(@RequestParam(value = "parent", required=true) List<Long> equipments) {
-//		int width = 80;
-//		int height = 20;
-		
 		DiagramItemContainers ret = new DiagramItemContainers();
 		LinkContainer linkContainer = new LinkContainer() {
 			@Override
@@ -1730,8 +1863,6 @@ public class TestRestController {
 				EquipmentPresentationEntity equipmentPresentation = equipmentPresentationRepository.findByEquipment(portEntity.getEquipment());
 				
 				Rectangle rect = new Rectangle();
-//				rect.width = width;
-//				rect.height = height;
 				rect.x = pre.getX() + equipmentPresentation.getX();
 				rect.y = pre.getY() + equipmentPresentation.getY();
 				return rect;
@@ -1751,8 +1882,6 @@ public class TestRestController {
 			
 			for (PortEntitySimple port : ports) {
 				PortPresentationEntity presentation = this.portPresentationRepository.findByPort(port.getId());
-//				presentation.setWidth(width);
-//				presentation.setHeight(height);
 				diagram.addItem(new DiagramItem(port.getId(), port.getPort_name(), 
 						presentation.getX() + equipmentPresentation.getX(), 
 						presentation.getY() + equipmentPresentation.getY(), 

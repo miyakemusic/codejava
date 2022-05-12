@@ -15,6 +15,7 @@
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
     <script type="text/javascript" th:src="@{/js/mytextdialog.js}"></script>
+    <script type="text/javascript" th:src="@{/js/equipmentchooser.js}"></script>
     <script type="text/javascript" th:src="@{/js/portsummary.js}"></script>
 	<script type="text/javascript">	
 		$(function() {	
@@ -33,6 +34,25 @@
 			var equipment = "[[${equipment}]]";
 			var portSummary = new PortSummary('ports');
 			portSummary.update(equipment);
+			
+			var portChooser = new EquipmentChooserDialog('portchooser', equipment, 'PortCategoryEntityS', function(obj){
+				var json = JSON.stringify(obj);
+				$.ajax({
+					type: "POST",
+					url: "/createPorts",
+					data: json,
+					contentType: "application/json",
+					dataType : "text"
+				}).done(function(data){
+					portSummary.update(equipment);
+				}).fail(function(XMLHttpRequest, status, e){
+					alert(e);
+				});	
+			});
+			
+			$('#createPort').click(function(){
+				portChooser.show();
+			});
 		});
 	</script>
     <title>Port Summary</title>
@@ -40,7 +60,8 @@
 <body>
 	<div id='headerDiv'></div>
     <div id="regTesterDialog"></div>
-    <button>Create Port</button>
+    <button id="createPort">Create Port</button>
     <div id="ports"></div>
+    <div id="portchooser"></div>
 </body>
 </html>

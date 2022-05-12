@@ -41,9 +41,6 @@ public class DiagramItemContainers {
 	}
 
 	public void pack(LinkContainer linkContainer) {
-		int x = Integer.MAX_VALUE;
-		int y = Integer.MAX_VALUE;
-		
 		Comparator<DiagramItemContainer> comparator = new Comparator<DiagramItemContainer>() {
 			@Override
 			public int compare(DiagramItemContainer o1, DiagramItemContainer o2) {
@@ -62,6 +59,7 @@ public class DiagramItemContainers {
 			map.get(d.x1).add(d.id);
 		}
 	
+		int xgap = 100;
 		int xoffset = 0;
 		int maxy = 0;
 		Map<Integer, Integer> heightMap = new LinkedHashMap<>();
@@ -95,16 +93,20 @@ public class DiagramItemContainers {
 			}
 			heightMap.put(xx, yoffset);
 			maxy = Math.max(maxy, yoffset);
-			xoffset += max + 20;
+			xoffset += max + xgap;
 		}
 		
 		for (Integer xx : containerMap.keySet()) {
 			for (DiagramItemContainer container : containerMap.get(xx)) {
 				int height = heightMap.get(xx);
-				container.setY(container.y1 +  (maxy - height) / 2);
+				container.setY(container.y1 /*+  (maxy - height) / 2 */);
 			}
 		}
 		
+		createLink(linkContainer);
+	}
+
+	public void createLink(LinkContainer linkContainer) {
 		linkContainer.calc();
 		for (DiagramItemContainer d : diagramContainers) {
 			links.addAll(d.createLink(linkContainer));

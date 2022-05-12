@@ -1,7 +1,7 @@
 class DiagramCanvas {
 	constructor(baseDiv) {
-		this.offsetx = 20;
-		this.offsety = 20;
+		this.offsetx = 0;//20;
+		this.offsety = 0;//20;
 		
 		this.canvas_width = 1600;
 		this.canvas_height = 1600;
@@ -9,7 +9,10 @@ class DiagramCanvas {
 		this.mode = 'link';
 		
 		this.div = baseDiv + '_diagram';
+//		this.poslabel = baseDiv + '_poslabel';
+		
 		$('#' + baseDiv).append('<div id="'+ this.div + '"></div>');
+//		$('#' + baseDiv).append('<label id="'+ this.poslabel + '"></label>');
 			
 		this.grid_id = this.div + '_grid';
 		this.link_id = this.div + '_link';
@@ -96,6 +99,15 @@ class DiagramCanvas {
 			var buttonPos = selectedButton.position();
 			me.tentativeCtx.strokeRect(e.clientX + buttonPos.left - moveStartX, e.clientY + buttonPos.top - moveStartY, 
 				selectedButton.outerWidth(), selectedButton.outerHeight());
+				
+			console.log('x=' + e.clientX + buttonPos.left - moveStartX + ', y=' + e.clientY + buttonPos.top - moveStartY);
+			
+			for (var b of me.selectedButtons) {
+				var otherButton = $('#' + b);
+				var otherPos = otherButton.position();
+				me.tentativeCtx.strokeRect(e.clientX + otherPos.left - moveStartX, e.clientY + otherPos.top - moveStartY, 
+					otherButton.outerWidth(), otherButton.outerHeight());				
+			}
 		}
 		
 		for (let data of containers.diagramContainers) {
@@ -125,6 +137,9 @@ class DiagramCanvas {
 					}
 				});
 				$('#' + obj.id).mouseup(function(e) {
+					if (selectedButton == null) {
+						return;
+					}
 					var id1 = selectedButton.attr('id');
 				
 					if (me.mode == 'link') {
@@ -264,9 +279,6 @@ class DiagramCanvas {
 				var y = e.clientY - $('#' + me.tentative_id).offset().top;
 
 				var buttonPos = selectedButton.position();
-//				x = e.clientX + buttonPos.left - moveStartX - me.offsetx;
-//				y = e.clientY + buttonPos.top - moveStartY - me.offsety;
-
 
 				x = e.clientX + buttonPos.left - moveStartX;
 				y= e.clientY + buttonPos.top - moveStartY, 
@@ -275,6 +287,19 @@ class DiagramCanvas {
 				y = Math.round(y / containers.gridy) * containers.gridy;
 				
 				me.onMove(id, x, y, selectedButton.outerWidth(), selectedButton.outerHeight());
+				
+				for (var b of me.selectedButtons) {
+					var otherButton = $('#' + b);
+					var otherPos = otherButton.position();
+						
+					x = e.clientX + otherPos.left - moveStartX;
+					y = e.clientY + otherPos.top - moveStartY, 
+					
+					x = Math.round(x / containers.gridx) * containers.gridx;
+					y = Math.round(y / containers.gridy) * containers.gridy;
+										
+					me.onMove(b, x, y, otherButton.outerWidth(), otherButton.outerHeight());					
+				}
 			}
 			
 			selectedButton = null;

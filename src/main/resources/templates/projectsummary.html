@@ -15,6 +15,7 @@
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
 	<script type="text/javascript" th:src="@{/js/mytextdialog.js}"></script>
 	<script type="text/javascript" th:src="@{/js/portsummary.js}"></script>
+	<script type="text/javascript" th:src="@{/js/equipmentchooser.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
 	<script type="text/javascript">	
 		$(function() {	
@@ -30,6 +31,7 @@
 				alert(errorThrown);
 			});
 			
+			var projectid = "[[${id}]]";
 			var table = $('#summarytable').DataTable({
 				"iDisplayLength": 50,
 				"sAjaxSource": "projectSummaryJson?id= + [[${id}]]",
@@ -274,6 +276,26 @@
 			.fail(function(XMLHttpRequest, textStatus, errorThrown){
 				alert(errorThrown);
 			});
+			
+			var equipmentChooser = new EquipmentChooserDialog('equipmentchooser', projectid, "EquipmentCategoryEntityS", function(obj){
+				var json = JSON.stringify(obj);
+				$.ajax({
+					type: "POST",
+					url: "/createEquipments",
+					data: json,
+					contentType: "application/json",
+					dataType : "text"
+				}).done(function(data){
+					table.ajax.reload();
+				}).fail(function(XMLHttpRequest, status, e){
+					alert(e);
+				});	
+			});
+			
+			$('#addEquipment').click(function(){
+				equipmentChooser.show();
+			});
+			
 		});
 	</script>
     <title>Project Summary</title>
@@ -287,5 +309,6 @@
 	<div id="optiondialog"><select id="categoryOptions"></select></div>
 	<div id="editdialog"><select id="editOptions"></select><input type="text" id="copyCount" value="1"></div>
 	<div id="portdialog"></div>
+	<div id="equipmentchooser"></div>
 </body>
 </html>

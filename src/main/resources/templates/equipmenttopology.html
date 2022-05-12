@@ -42,8 +42,8 @@
     				showTestItemsDialog(id);
     			}
     			else {
-    				//window.open('porttopology?id=' + id);
-    				showPortTopologyDialog(id, text);
+    				window.open('porttopology?id=' + id);
+    				//showPortTopologyDialog(id, text);
     			}
     		});
     		
@@ -99,7 +99,8 @@
     				i++;
     			}
     			//window.open('porttopology?id=' + arg);
-    			showPortTopologyDialog(arg, '');
+    			window.open('porttopology?id=' + arg);
+    			//showPortTopologyDialog(arg, '');
     		});
     		
     		function drawDiagram() {

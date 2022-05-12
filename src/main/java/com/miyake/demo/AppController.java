@@ -158,6 +158,11 @@ public class AppController {
         return "equipmentdef";
     }
     
+    @GetMapping("/portdef")
+    public String portdef(Model model) {   	
+        return "portdef";
+    }
+    
     @GetMapping("/testitems")
     public String testitems(Model model, @RequestParam(value = "id", required=true) Long id) {   
  //   	List<PortEntity> ports = this.portRepository.findByEquipment(id);
