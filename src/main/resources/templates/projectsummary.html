@@ -69,6 +69,13 @@
 								}
 							},	
 				            {
+								"targets": 5,
+								"render": function ( data, type, full, meta ) {
+									return '<a href="testSummaryEquipment?id=' + full.id + '" target=”_blank”>' + full.testStatus + '</a>';
+									//return '<button class="btn btn-link" name="Ports" id="ports_' + full.id + '">' + full.ports + '</button>';
+								}
+							},
+				            {
 								"targets": 6,
 								"render": function ( data, type, full, meta ) {
 									//return '<a href="portsummary?id=' + full.id + '">' + full.ports + '</a>';

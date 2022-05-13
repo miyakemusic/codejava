@@ -197,6 +197,12 @@ public class AppController {
 		model.addAttribute("tester", id);
     	return "testerscreen";
     }
+
+	@GetMapping("/testSummaryEquipment")
+    public String testSummary(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) String id) {
+		model.addAttribute("equipment", id);
+    	return "testsummaryequipment";
+    }
 	
 	@GetMapping("/testerdef")
     public String tester(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {

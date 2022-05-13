@@ -77,6 +77,7 @@ import com.miyake.demo.jsonobject.PrimitiveRect;
 import com.miyake.demo.jsonobject.ProjectJson;
 import com.miyake.demo.jsonobject.ProjectSummaryJson;
 import com.miyake.demo.jsonobject.TestCaseRequest;
+import com.miyake.demo.jsonobject.TestItemJson;
 import com.miyake.demo.jsonobject.TestItemList;
 import com.miyake.demo.jsonobject.TestItemListElement;
 import com.miyake.demo.jsonobject.TestPlan;
@@ -685,6 +686,29 @@ public class TestRestController {
     		applyPortTemplate(portTemplate);
     	}
     	return "OK";
+    }
+    
+    @GetMapping("/testSummaryEquipmentJson")
+    public List<TestItemJson> testSummaryEquipmentJson(@RequestParam(value = "id", required=true) Long id) {
+    	List<TestItemJson> ret = new ArrayList<>();
+    	
+    	List<PortEntity> ports = this.portRepository.findByEquipment(id);
+    	for (PortEntity port : ports) {
+    		List<PortTestEntity> portTests = this.portTestRepository.findByPort(port.getId());
+    		for (PortTestEntity portTest : portTests) {
+    			TestItemJson json = new TestItemJson(
+    					portTest.getId(), 
+    					port.getPort_name(),
+    					portTest.getDirectionEntity().getName(), 
+    					portTest.getTest_itemEntity().getTest_item(),
+    					portTest.getCriteria(), 
+    					portTest.getResult(), 
+    					portTest.getPassfail().toString());
+    			ret.add(json);
+    		}
+    	}
+    	
+    	return ret;
     }
     
     @GetMapping("/testitemlist")
