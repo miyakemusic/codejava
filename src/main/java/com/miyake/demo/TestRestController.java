@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.TextMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.miyake.demo.entities.CableEntity;
 import com.miyake.demo.entities.ConnectorEntity;
 import com.miyake.demo.entities.EquipmentCategoryEntity;
 import com.miyake.demo.entities.EquipmentEntity;
@@ -84,6 +85,7 @@ import com.miyake.demo.jsonobject.TestPlan;
 import com.miyake.demo.jsonobject.TestPlan2Element;
 import com.miyake.demo.jsonobject.TesterJson;
 import com.miyake.demo.jsonobject.WebSocketSignal;
+import com.miyake.demo.repository.CableRepository;
 import com.miyake.demo.repository.ConnectorRepository;
 import com.miyake.demo.repository.EquipmentCategoryRepository;
 import com.miyake.demo.repository.EquipmentRepository;
@@ -119,6 +121,9 @@ import com.miyake.demo.shared.PassFailCalculator;
 
 @RestController
 public class TestRestController {
+    @Autowired
+    private CableRepository cableRepository;
+    
     @Autowired
     private TesterVendorRepository testerVendorRepository;
     
@@ -214,7 +219,31 @@ public class TestRestController {
     
     @Autowired
     private MyMessageHandler messageHandler;
-       
+    
+    @GetMapping("/CableEntityS")
+    public List<CableEntity> CableEntityS() {
+    	return this.cableRepository.findAll();
+    }
+    
+    @PostMapping("/updateCable")
+    public String createPort(@RequestBody ElementJson cable) {
+    	CableEntity e = null;
+    	if (cable.id != null) {
+    		e = this.cableRepository.getById(cable.id);
+    	}
+    	else {
+    		e = new CableEntity();
+    	}
+		if (cable.field.equals("name")) {
+			e.setName(cable.value);
+		}
+		else if (cable.field.equals("description")) {
+			e.setDescription(cable.value);
+		}
+    	this.cableRepository.save(e);
+    	return "OK";
+    }
+    
     @GetMapping("/PortEntityS")
     public List<PortEntity> getAllPorts(@RequestParam(value = "parent", required=false) Long parent) {
     	if (parent == null) {
@@ -549,10 +578,20 @@ public class TestRestController {
     			
     		}
     		
-    		ret.add(new PortSummaryJson(e.getId(), e.getPort_name(), linkEquipment, linkPort, testPoints.toString(), testItems.toString()));
+    		List<PortTestEntity> portTestEntities = this.portTestRepository.findByPort(e.getId());
+    		String testStatus = createTestStatus(portTestEntities);
+    		String cable = "-";
+    		if (e.getCabletype() != null) {
+    			cable = this.cableRepository.getById(e.getCabletype()).getName();
+    		}
+    		ret.add(new PortSummaryJson(e.getId(), e.getPort_name(), linkEquipment, linkPort, cable, formatArrayString(testPoints), formatArrayString(testItems), testStatus));
     	}
     	return ret;
     }
+
+	private String formatArrayString(Set<String> testPoints) {
+		return testPoints.toString().replace(",","<br>").replace("[", "").replace("]", "");
+	}
     
     @PostMapping("/PortTestJson")
     public PortTestEntitySimple postPortTestJson(@RequestBody PortTestJson port_test) {
@@ -842,7 +881,6 @@ public class TestRestController {
     		}
     		
     		String location = "---";
-    		String testStatus = "---";
     		String ports = "---";
     		
     		List<PortEntity> portEntities = this.portRepository.findByEquipment(equipment.getId());
@@ -855,10 +893,37 @@ public class TestRestController {
     		if (equipment.getAddress() != null) {
     			location = equipment.getAddress();
     		}
+    		
+    		List<PortTestEntity> portTestEntities = this.getPortTestEntityByEquipment(equipment.getId());
+    		String testStatus = createTestStatus(portTestEntities);
+    		
     		ret.add(new ProjectSummaryJson(equipment.getId(), category, equipment.getName(), location, ports, testStatus));
     	}
     	return ret;
     }
+
+	private String createTestStatus(List<PortTestEntity> portTestEntities) {
+		int totalTestCount = 0;
+		int failCount = 0;
+		int passCount = 0;
+		int testedCount = 0;
+		for (PortTestEntity p : portTestEntities) {
+			if (p.getPassfail().compareTo(PassFailEnum.Failed) == 0) {
+				failCount++;
+			}
+			else if (p.getPassfail().compareTo(PassFailEnum.Passed) == 0) {
+				passCount++;
+			}
+			else if (p.getPassfail().compareTo(PassFailEnum.Tested) == 0) {
+				testedCount++;
+			}
+			totalTestCount++;
+		}
+		int testedTotal = failCount + passCount + testedCount;
+		int progress = (int)(((double)testedTotal/(double)totalTestCount) * 100.0);
+		String testStatus = progress + "% (" + testedTotal + "/" + totalTestCount + "), Fails=" + failCount;
+		return testStatus;
+	}
     
     @GetMapping("/EquipmentEntityS")
     public List<EquipmentEntity> getEquipments(@RequestParam(value = "parent", required=false) Long parent) {

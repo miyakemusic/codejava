@@ -90,6 +90,16 @@ public class AppController {
         model.addAttribute("equipment", id);
         return "ports";
     }
+ 
+    @GetMapping("/cables")
+    public String cables(Model model) {
+        model.addAttribute("title", "Cables");
+        model.addAttribute("getresource", "CableEntityS");
+        model.addAttribute("setresource", "updateCable");
+        model.addAttribute("dialogTitle", "New Cable");
+        
+        return "cables";
+    }
     
     @GetMapping("/portsummary")
     public String portsummary(Model model, @RequestParam(value = "id", required=true) Long id) {

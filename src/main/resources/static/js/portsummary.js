@@ -8,6 +8,8 @@ class PortSummary {
 		this.editdialogid = div + '_editdialog';
 		this.editoptionid = div + '_editoptions';
 		this.copycountid = div + '_copycount';
+		this.portchooserid = div + '_portchooser';
+		$('#' + div).append('<div id="' + this.portchooserid + '"></div>');
 		
 		var me = this;
 		
@@ -114,17 +116,29 @@ class PortSummary {
 				            {
 								"targets": 4,
 								"render": function ( data, type, full, meta ) {
-										return '<button class="btn btn-link" name="TestPoints" id="testPoints_' + full.id + '">' + full.testPoints + '</button>';
+										return '<button class="btn btn-link" name="Cable" id="cable_' + full.id + '">' + full.cable + '</button>';
 								}
 							},
 				            {
 								"targets": 5,
 								"render": function ( data, type, full, meta ) {
-									return '<button class="btn btn-link" name="Tests" id="tests_' + full.id + '">' + full.tests + '</button>';
+										return '<button class="btn btn-link" name="TestPoints" id="testPoints_' + full.id + '">' + full.testPoints + '</button>';
 								}
 							},
 				            {
 								"targets": 6,
+								"render": function ( data, type, full, meta ) {
+									return '<button class="btn btn-link" name="Tests" id="tests_' + full.id + '">' + full.tests + '</button>';
+								}
+							},
+							{
+								"targets": 7,
+								"render": function ( data, type, full, meta ) {
+									return '<button class="btn btn-link" name="Test Status" id="status_' + full.id + '">' + full.status + '</button>';
+								}
+							},
+				            {
+								"targets": 8,
 								"render": function ( data, type, full, meta ) {
 									//return '<a href="portsummary?id=' + full.id + '">' + full.ports + '</a>';
 									return '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">Edit</button>';
@@ -136,12 +150,18 @@ class PortSummary {
 					{ "sTitle": "Port", "mData": "name" },
 					{ "sTitle": "Link Equipment", "mData": "linkEquipment" },
 					{ "sTitle": "Link Port", "mData": "linkPort" },
+					{ "sTitle": "Cable", "mData": "cable" },
 					{ "sTitle": "Test Point", "mData": "testPoint" },
 					{ "sTitle": "Tests", "mData": "tests" },
+					{ "sTitle": "Test Status", "mData": "status" },
 					{ "sTitle": "Edit", "mData": null },
 				]
 			});		
 			$('#' + me.tableid).css('width', '100%');
+			
+			var cableChooser = new CableChooserDialog(this.portchooserid, equipment, 'CableEntityS', function(obj){
+				
+			});
 			
 			this.table.on( 'draw', function () {
 				$('.btn').click(function(){
@@ -150,6 +170,9 @@ class PortSummary {
 //					selectedField = $(this).attr('id').split('_')[0];
 					if ($(this).attr('name') == 'Name') {
 						me.dialog.show($(this).text());
+					}
+					else if ($(this).attr('name') == 'Cable') {
+						cableChooser.show();
 					}
 				});
 				

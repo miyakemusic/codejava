@@ -23,7 +23,7 @@ public class PortEntitySimple implements Cloneable {
 
 	private Long connector_type;
 
-	private Double fiber_length;
+	private Double cable_length;
 	
 	private Long equipment;
     

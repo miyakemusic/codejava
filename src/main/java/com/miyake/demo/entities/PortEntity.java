@@ -33,7 +33,9 @@ public class PortEntity {
 
 	private Long connector_type;
 
-	private Double fiber_length;
+	private Long cabletype;
+	
+	private Double cable_length;
 	
 	private Long equipment;
     
