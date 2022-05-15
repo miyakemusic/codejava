@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.HtmlUtils;
 
 import com.miyake.demo.entities.EquipmentEntity;
+import com.miyake.demo.entities.PortEntity;
 import com.miyake.demo.entities.ProjectEntitySimple;
 import com.miyake.demo.entities.TesterCategoryEntity;
 import com.miyake.demo.entities.UserEntity;
@@ -209,9 +210,22 @@ public class AppController {
     }
 
 	@GetMapping("/testSummaryEquipment")
-    public String testSummary(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) String id) {
+    public String testSummaryEquipment(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) Long id) {
 		model.addAttribute("equipment", id);
+		
+		EquipmentEntity e = this.equipmentRepository.getById(id);
+		
+		model.addAttribute("equipmentname", e.getName());
     	return "testsummaryequipment";
+    }
+
+	@GetMapping("/testSummaryPort")
+    public String testSummaryPort(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) Long id) {
+		model.addAttribute("port", id);
+		
+		PortEntity e = this.portRepository.getById(id);
+		model.addAttribute("portname", e.getPort_name());
+    	return "testsummaryport";
     }
 	
 	@GetMapping("/testerdef")

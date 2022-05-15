@@ -1,4 +1,4 @@
-class CableChooser {
+class CommonChooser {
 	constructor (div, resource) {
 		this.selectorid = div + '_selector';
 		this.countid = div + '_count';
@@ -26,16 +26,17 @@ class CableChooser {
 	}
 	
 	id() {
-		return $('#' + this.selectorid).attr('id');
+		return $('#' + this.selectorid).val();
 	}
 }
-class CableChooserDialog {
-	constructor(div, port, resource, onOK) {
+class CommonChooserDialog {
+	constructor(div, resource, field, onOK) {
 		this.dialogid = div + '_dialog';
 		$('#' + div).append('<div id="' + this.dialogid + '"></div>');
 		
-		var chooser = new CableChooser(this.dialogid, resource);
+		var chooser = new CommonChooser(this.dialogid, resource);
 		
+		var me = this;
 		$("#" + this.dialogid).dialog({
 			modal:true,
 			autoOpen: false,
@@ -47,8 +48,9 @@ class CableChooserDialog {
 					$(this).dialog("close");
 					
 					var obj = new Object();
-					obj.port = port;
-					obj.chooser.id();
+					obj.field = field;//;
+					obj.value = chooser.id();
+					obj.id = me.port
 					onOK(obj);						
 				},
 				"Cancel": function() {
@@ -58,7 +60,8 @@ class CableChooserDialog {
 		});		
 	}
 	
-	show() {
+	show(port) {
+		this.port = port;
 		$('#' + this.dialogid).dialog('open');
 	}	
 }

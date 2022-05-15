@@ -65,11 +65,12 @@ class PortSummary {
 			var obj = new Object();
 			obj.id = me.selectedId;
 			obj.value = val;
+			obj.field = 'port_name';
 			
 			var json = JSON.stringify(obj);
 			$.ajax({
 				type: "POST",
-				url: "/portName",
+				url: "/updatePort",
 				data: json,
 				contentType: "application/json",
 				dataType : "text"
@@ -148,19 +149,30 @@ class PortSummary {
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
 					{ "sTitle": "Port", "mData": "name" },
-					{ "sTitle": "Link Equipment", "mData": "linkEquipment" },
-					{ "sTitle": "Link Port", "mData": "linkPort" },
+					{ "sTitle": "Destination Equipment", "mData": "linkEquipment" },
+					{ "sTitle": "Destination Port", "mData": "linkPort" },
 					{ "sTitle": "Cable", "mData": "cable" },
 					{ "sTitle": "Test Point", "mData": "testPoint" },
 					{ "sTitle": "Tests", "mData": "tests" },
-					{ "sTitle": "Test Status", "mData": "status" },
+					{ "sTitle": "Test Progress", "mData": "status" },
 					{ "sTitle": "Edit", "mData": null },
 				]
 			});		
 			$('#' + me.tableid).css('width', '100%');
 			
-			var cableChooser = new CableChooserDialog(this.portchooserid, equipment, 'CableEntityS', function(obj){
-				
+			var cableChooser = new CommonChooserDialog(this.portchooserid, 'CableEntityS', 'cabletype', function(obj){
+				var json = JSON.stringify(obj);
+				$.ajax({
+					type: "POST",
+					url: "/updatePort",
+					data: json,
+					contentType: "application/json",
+					dataType : "text"
+				}).done(function(data){
+					me.table.ajax.reload();
+				}).fail(function(XMLHttpRequest, status, e){
+					alert(e);
+				});					
 			});
 			
 			this.table.on( 'draw', function () {
@@ -172,7 +184,10 @@ class PortSummary {
 						me.dialog.show($(this).text());
 					}
 					else if ($(this).attr('name') == 'Cable') {
-						cableChooser.show();
+						cableChooser.show(me.selectedId);
+					}
+					else {
+						window.open("testSummaryPort?id=" + me.selectedId, "_blank");
 					}
 				});
 				

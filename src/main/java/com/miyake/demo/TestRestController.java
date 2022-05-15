@@ -290,6 +290,29 @@ public class TestRestController {
     	return port;
     }
     
+    @PostMapping("/updatePort")
+    public String PortCable(@RequestBody ElementJson element) {
+    	PortEntity e = this.portRepository.getById(element.id);
+    	if (element.field.equals("cabletype")) {
+    		Long cabletype = Long.valueOf(element.value); 
+    		e.setCabletype(cabletype);
+    	}
+    	else if (element.field.equals("port_name")) {
+    		e.setPort_name(element.value);
+    	}
+    	this.portRepository.save(e);
+    	return "OK";
+    }
+    
+    @PostMapping("/portName")
+    public String portName(@RequestBody ElementJson element) {
+    	PortEntity portEntity = this.portRepository.getById(element.id);
+    	portEntity.setPort_name(element.value);
+    	this.portRepository.save(portEntity);
+    	
+    	return "OK";
+    }
+    
     @PostMapping("/editProjectSummary")
     public String editProjectSummary(@RequestBody EquipmentEditJson equipmentEditJson) {
     	if (equipmentEditJson.editType.equals("copy")) {
@@ -313,15 +336,7 @@ public class TestRestController {
     	}
     	return "OK";
     }
-    
-    @PostMapping("/portName")
-    public String portName(@RequestBody ElementJson element) {
-    	PortEntity portEntity = this.portRepository.getById(element.id);
-    	portEntity.setPort_name(element.value);
-    	this.portRepository.save(portEntity);
-    	
-    	return "OK";
-    }
+
     
     @GetMapping("/PortEntitySimpleS")
     public List<PortEntitySimple> portEntitySimpleS(@RequestParam(value = "parent", required=false) Long parent) {
@@ -748,6 +763,50 @@ public class TestRestController {
     	}
     	
     	return ret;
+    }
+    
+    @GetMapping("/testSummaryPortJson")
+    public List<TestItemJson> testSummaryPortJson(@RequestParam(value = "id", required=true) Long id) {
+    	List<TestItemJson> ret = new ArrayList<>();
+    	
+		List<PortTestEntity> portTests = this.portTestRepository.findByPort(id);
+		for (PortTestEntity portTest : portTests) {
+			String criteria = portTest.getCriteria();
+			if (criteria == null || criteria.isEmpty()) {
+				criteria = "-";
+			}
+			String result = portTest.getResult();
+			if (result == null || result.isEmpty()) {
+				result = "-";
+			}
+			TestItemJson json = new TestItemJson(
+					portTest.getId(), 
+					portTest.getDirectionEntity().getName(), 
+					portTest.getTest_itemEntity().getTest_item(),
+					criteria, 
+					result, 
+					portTest.getPassfail().toString());
+			ret.add(json);
+		}
+    	
+    	return ret;
+    }
+    
+    @PostMapping("/updatePortTest")
+    public String updatePortTest(@RequestBody ElementJson item) {
+    	PortTestEntity e = this.portTestRepository.getById(item.id);
+    	
+    	if (item.field.equals("criteria")) {
+    		e.setCriteria(item.value);
+    	}
+    	else if (item.field.equals("result")) {
+    		e.setResult(item.value);
+    	}
+    	PassFailCalculator calculator = new PassFailCalculator();
+    	e.setPassfail( calculator.judgePassFail(e.getCriteria(), e.getResult()) );
+    	
+    	this.portTestRepository.save(e);
+    	return "OK";
     }
     
     @GetMapping("/testitemlist")

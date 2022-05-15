@@ -21,7 +21,6 @@ class PortTopology {
 					}
 				}
 			});
-			
 		});
 	    
 	    var me = this;

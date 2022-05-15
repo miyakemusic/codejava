@@ -13,9 +13,9 @@
     <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
-	<script type="text/javascript" th:src="@{/js/testitemtable.js}"></script>
-	<script type="text/javascript" th:src="@{/js/mytextdialog.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" th:src="@{/js/mytextdialog.js}"></script>
+    <script type="text/javascript" th:src="@{/js/testitemtable.js}"></script>
 	<script type="text/javascript">	
 		$(function() {	
 			$.ajax({
@@ -30,13 +30,12 @@
 				alert(errorThrown);
 			});
 			
-			var equipment = "[[${equipment}]]";
-			
-			var resource = 'testSummaryEquipmentJson?id=' + equipment;
-			var table = new TestItemTable('tests', resource);
+			var port = "[[${port}]]";
+			var resource = 'testSummaryPortJson?id=' + port;
+			var table = new TestItemTable('tests', resource, 'hideport');
 //			var table = $('#tests').DataTable({
 //				"iDisplayLength": 50,
-//				"sAjaxSource": 'testSummaryEquipmentJson?id=' + equipment,
+//				"sAjaxSource": 'testSummaryPortJson?id=' + port,
 //				"sAjaxDataProp": "",
 //				"columnDefs": [
 //				            {
@@ -47,7 +46,6 @@
 //				        ],
 //				"aoColumns": [
 //					{ "sTitle": "ID", "mData": "id" },
-//					{ "sTitle": "Port", "mData": "port" },
 //					{ "sTitle": "Test Point", "mData": "testPoint" },
 //					{ "sTitle": "Test Item", "mData": "testItem" },
 //					{ "sTitle": "Criteria", "mData": "criteria" },
@@ -61,8 +59,8 @@
 </head>
 <body>
 	<div id='headerDiv'></div>
-	<h1 th:text="${equipmentname}"></h1>
     <div id="regTesterDialog"></div>
+    <h1 th:text="${portname}"></h1>
     <table id="tests" class="table table-striped table-bordered"></table>
 </body>
 </html>
