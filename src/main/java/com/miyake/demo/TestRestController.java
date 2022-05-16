@@ -750,6 +750,7 @@ public class TestRestController {
     	for (PortEntity port : ports) {
     		List<PortTestEntity> portTests = this.portTestRepository.findByPort(port.getId());
     		for (PortTestEntity portTest : portTests) {
+    			String testStatus = createTestStatusLabel(portTest);
     			TestItemJson json = new TestItemJson(
     					portTest.getId(), 
     					port.getPort_name(),
@@ -757,7 +758,7 @@ public class TestRestController {
     					portTest.getTest_itemEntity().getTest_item(),
     					portTest.getCriteria(), 
     					portTest.getResult(), 
-    					portTest.getPassfail().toString());
+    					testStatus);
     			ret.add(json);
     		}
     	}
@@ -779,18 +780,37 @@ public class TestRestController {
 			if (result == null || result.isEmpty()) {
 				result = "-";
 			}
+			
+			String testStatus = createTestStatusLabel(portTest);
+
 			TestItemJson json = new TestItemJson(
 					portTest.getId(), 
 					portTest.getDirectionEntity().getName(), 
 					portTest.getTest_itemEntity().getTest_item(),
 					criteria, 
 					result, 
-					portTest.getPassfail().toString());
+					testStatus);
 			ret.add(json);
 		}
     	
     	return ret;
     }
+
+	private String createTestStatusLabel(PortTestEntity portTest) {
+		String cls = "";
+		if (portTest.getPassfail().compareTo(PassFailEnum.Failed) == 0) {
+			cls = "text-danger";
+		}
+		else if (portTest.getPassfail().compareTo(PassFailEnum.Passed) == 0) {
+			cls = "text-success";
+		}
+		else if (portTest.getPassfail().compareTo(PassFailEnum.Untested) == 0) {
+			cls = "text-dark";
+		}
+		
+		String testStatus = "<label class=\"" + cls + "\">" + portTest.getPassfail().toString() + "</label>";
+		return testStatus;
+	}
     
     @PostMapping("/updatePortTest")
     public String updatePortTest(@RequestBody ElementJson item) {
@@ -980,7 +1000,17 @@ public class TestRestController {
 		}
 		int testedTotal = failCount + passCount + testedCount;
 		int progress = (int)(((double)testedTotal/(double)totalTestCount) * 100.0);
-		String testStatus = progress + "% (" + testedTotal + "/" + totalTestCount + "), Fails=" + failCount;
+		String testStatus = progress + "% (" + testedTotal + "/" + totalTestCount + ")";
+		
+		if (failCount > 0) {
+			testStatus = "<label class=\"text-danger\">Fails: " + failCount + "</label><br>" + testStatus;
+		}
+		else if (totalTestCount == passCount) {
+			testStatus = "<label class=\"text-success\">Passed</label><br>" + testStatus;
+		}
+		else if (testedTotal == 0) {
+			testStatus = "<label class=\"text-dark\">Untested</label><br>" + testStatus;
+		}
 		return testStatus;
 	}
     

@@ -33,26 +33,6 @@
 			var port = "[[${port}]]";
 			var resource = 'testSummaryPortJson?id=' + port;
 			var table = new TestItemTable('tests', resource, 'hideport');
-//			var table = $('#tests').DataTable({
-//				"iDisplayLength": 50,
-//				"sAjaxSource": 'testSummaryPortJson?id=' + port,
-//				"sAjaxDataProp": "",
-//				"columnDefs": [
-//				            {
-//				                "targets": [ 0 ],
-//				                "visible": false,
-//				                "searchable": false
-//				            },		            
-//				        ],
-//				"aoColumns": [
-//					{ "sTitle": "ID", "mData": "id" },
-//					{ "sTitle": "Test Point", "mData": "testPoint" },
-//					{ "sTitle": "Test Item", "mData": "testItem" },
-//					{ "sTitle": "Criteria", "mData": "criteria" },
-//					{ "sTitle": "Result", "mData": "result" },
-//					{ "sTitle": "Pass/Fail", "mData": "passFail" }
-//				]
-//			});	
 		});
 	</script>
     <title>Test Summary</title>

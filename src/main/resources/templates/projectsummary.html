@@ -31,6 +31,8 @@
 				alert(errorThrown);
 			});
 			
+			$('#summarytable').css('width', '100%');
+			
 			var projectid = "[[${id}]]";
 			var table = $('#summarytable').DataTable({
 				"iDisplayLength": 50,
@@ -71,6 +73,10 @@
 				            {
 								"targets": 5,
 								"render": function ( data, type, full, meta ) {
+									var cls = '';
+			//						if (full.testStatus.includes('Fails')) {
+			//							cls = "bg-danger";
+			//						}
 									return '<a href="testSummaryEquipment?id=' + full.id + '" target=”_blank”>' + full.testStatus + '</a>';
 									//return '<button class="btn btn-link" name="Ports" id="ports_' + full.id + '">' + full.ports + '</button>';
 								}

@@ -2,8 +2,9 @@ class MyTestersConfig {
 	constructor(div) {
 		this.thisdiv = div + "_mytetser";
 		var tableid = this.thisdiv + "_table";
-		$('#' + div).append('<div id="'+ this.thisdiv + '"><table id="'+ tableid + '"></table></div>');
+		$('#' + div).append('<div id="'+ this.thisdiv + '"><table id="'+ tableid + '" class="table table-striped table-bordered"></table></div>');
 		
+		$('#' + this.thisdiv).css('width', '100%');
 		var me = this;
 		this.table = $('#' + tableid).DataTable({
 			"iDisplayLength": 50,

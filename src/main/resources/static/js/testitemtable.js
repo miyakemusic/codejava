@@ -3,7 +3,7 @@ class TestItemTable {
 //		var equipment = "[[${equipment}]]";
 
 		var tableid = div + '_testitemtable';
-		$('#' + div).append('<table id="' + tableid + '"></table>');
+		$('#' + div).append('<table id="' + tableid + '" class="table table-striped table-bordered"></table>');
 		
 		var table = $('#' + tableid).DataTable({
 			"iDisplayLength": 50,
@@ -26,7 +26,13 @@ class TestItemTable {
 							"render": function ( data, type, full, meta ) {
 									return '<button class="btn btn-link" name="Result" id="result_' + full.id + '">' + full.result + '</button>';
 							}
-						},	       
+						},	
+			            {
+							"targets": 7,
+							"render": function ( data, type, full, meta ) {
+									return '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">' + 'Edit' + '</button>';
+							}
+						},	      
 			        ],
 			"aoColumns": [
 				{ "sTitle": "ID", "mData": "id" },
@@ -35,7 +41,8 @@ class TestItemTable {
 				{ "sTitle": "Test Item", "mData": "testItem" },
 				{ "sTitle": "Criteria", "mData": "criteria" },
 				{ "sTitle": "Result", "mData": "result" },
-				{ "sTitle": "Pass/Fail", "mData": "passFail" }
+				{ "sTitle": "Pass/Fail", "mData": "passFail" },
+				{ "sTitle": "Edit", "mData": null },
 			]
 		});			
 		$('#' + tableid).css('width', '100%');
@@ -85,6 +92,9 @@ class TestItemTable {
 				}
 				else if ($(this).attr('name') == 'Result') {
 					resultDialog.show($(this).text());
+				}
+				else if ($(this).attr('name') == 'Edit') {
+
 				}
 				else {
 					window.open("testSummaryPort?id=" + me.selectedId, "_blank");
