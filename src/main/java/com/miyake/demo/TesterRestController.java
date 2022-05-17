@@ -23,10 +23,12 @@ import com.miyake.demo.entities.EquipmentEntity;
 import com.miyake.demo.entities.MyTesterEntity;
 import com.miyake.demo.entities.PortEntity;
 import com.miyake.demo.entities.PortTestEntity;
+import com.miyake.demo.entities.ProjectEntity;
 import com.miyake.demo.entities.TestScenarioItemEntity;
 import com.miyake.demo.entities.TesterCapabilityEntity;
 import com.miyake.demo.entities.TesterEntity;
 import com.miyake.demo.jsonobject.ImageJson;
+import com.miyake.demo.jsonobject.ProjectJson;
 import com.miyake.demo.jsonobject.TestPlan2;
 import com.miyake.demo.jsonobject.TestPlan2Element;
 import com.miyake.demo.jsonobject.WebSocketSignal;
@@ -34,6 +36,7 @@ import com.miyake.demo.repository.EquipmentRepository;
 import com.miyake.demo.repository.MyTesterRepository;
 import com.miyake.demo.repository.PortRepository;
 import com.miyake.demo.repository.PortTestRepository;
+import com.miyake.demo.repository.ProjectRepository;
 import com.miyake.demo.repository.TestScenarioItemRepository;
 import com.miyake.demo.repository.TesterRepository;
 
@@ -59,7 +62,33 @@ public class TesterRestController {
     private PortTestRepository portTestRepository;
    
     @Autowired
+    private ProjectRepository projectRepository;
+    
+    @Autowired
     private MyMessageHandler messageHandler;
+    
+    @GetMapping("/projectListForTester")
+    public List<ProjectJson> projectList(@AuthenticationPrincipal CustomTesterDetails userDetails) {
+    	List<ProjectEntity> projects = projectRepository.findByUsergroup(userDetails.getTester().getUsergroup()); 
+    	
+    	List<ProjectJson> ret  = new ArrayList<>();
+    	for (ProjectEntity e: projects) {
+    		ret.add(new ProjectJson(e.getId(), e.getName()));
+    	}
+    	return ret;
+    }
+    
+    @GetMapping("/equipmentListForTester")
+    public List<ProjectJson> equipmentListForTester(@AuthenticationPrincipal CustomTesterDetails userDetails, @RequestParam(value = "id", required=true) Long id) {
+    	
+    	List<EquipmentEntity> equipment = this.equipmentRepository.findByProject(id);
+     	
+    	List<ProjectJson> ret  = new ArrayList<>();
+    	for (EquipmentEntity e: equipment) {
+    		ret.add(new ProjectJson(e.getId(), e.getName()));
+    	}
+    	return ret;
+    }
     
     @GetMapping("/testerOnline")
     public MyTesterEntity getMe(@AuthenticationPrincipal CustomTesterDetails userDetails) {
@@ -81,6 +110,29 @@ public class TesterRestController {
     	}
     	
     	return userDetails.getTester();
+    }
+    
+    @GetMapping("/equipmentTestForTester")
+    public TestPlan2 equipmentTestForTester(@AuthenticationPrincipal CustomTesterDetails userDetails, @RequestParam(value = "id", required=true) Long id) {
+    	TestPlan2 testPlan = new TestPlan2();
+    	EquipmentEntity equipment = this.equipmentRepository.getById(id);
+		
+		for (PortEntity port : this.portRepository.findByEquipment(equipment.getId())) {
+	    	List<PortTestEntity> porttests = this.portTestRepository.findByPort(port.getId());
+	    	for (PortTestEntity pte : porttests) {
+	    		boolean support = true;//supportids.contains(pte.getTestItem());
+	    		
+	    		TestPlan2Element element = new TestPlan2Element(pte.getId(), equipment.getId(), 
+	    				port.getId(), pte.getDirectionEntity().getName(), pte.getTestItem(), pte.getCriteria(), pte.getTester(),
+	    				pte.getResult(), pte.getPassfail(), support);
+	    		testPlan.add(element);
+	    		
+	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(pte.getPort(), 
+	    				this.portRepository.getById(pte.getPort()).getPort_name()).testItem(pte.getTestItem(), 
+	    						pte.getTest_itemEntity().getTest_item());
+	    	}    			
+		}  	
+		return testPlan;
     }
     
     @GetMapping("/testPlan2")

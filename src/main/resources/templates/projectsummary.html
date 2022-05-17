@@ -14,6 +14,7 @@
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
 	<script type="text/javascript" th:src="@{/js/mytextdialog.js}"></script>
+	<script type="text/javascript" th:src="@{/js/mywebsocket.js}"></script>
 	<script type="text/javascript" th:src="@{/js/portsummary.js}"></script>
 	<script type="text/javascript" th:src="@{/js/equipmentchooser.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
@@ -308,7 +309,12 @@
 			$('#addEquipment').click(function(){
 				equipmentChooser.show();
 			});
-			
+			var ws = new MyWebSocket(function(obj){
+				//console.log(obj);
+				if (obj.signalType == 'ResultUpdated') {
+					table.ajax.reload();
+				}
+			});			
 		});
 	</script>
     <title>Project Summary</title>

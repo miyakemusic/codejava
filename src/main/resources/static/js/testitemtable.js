@@ -107,5 +107,12 @@ class TestItemTable {
 				$("#" + me.editdialogid).dialog('open');
 			});
 		});
+		
+		var ws = new MyWebSocket(function(obj){
+			//console.log(obj);
+			if (obj.signalType == 'ResultUpdated') {
+				table.ajax.reload();
+			}
+		});
 	}
 }
