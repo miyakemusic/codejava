@@ -5,7 +5,7 @@ class TestItemTable {
 		var tableid = div + '_testitemtable';
 		$('#' + div).append('<table id="' + tableid + '" class="table table-striped table-bordered"></table>');
 		
-		var table = $('#' + tableid).DataTable({
+		this.table = $('#' + tableid).DataTable({
 			"iDisplayLength": 50,
 			"sAjaxSource": resource, //'testSummaryEquipmentJson?id=' + equipment,
 			"sAjaxDataProp": "",
@@ -47,7 +47,7 @@ class TestItemTable {
 		});			
 		$('#' + tableid).css('width', '100%');
 		if (hideport != null) {
-			table.column( 1 ).visible( false );
+			this.table.column( 1 ).visible( false );
 		}
 				
 		var me = this;
@@ -62,7 +62,7 @@ class TestItemTable {
 		var resultDialog = new MyTextDialog(resultDialogId, function(v) {
 			postItem(me.selectedId, 'result', v);		
 		});
-				
+			
 		function postItem(id, field, value) {
 			var obj = new Object();
 			obj.id = id;
@@ -76,13 +76,13 @@ class TestItemTable {
 				contentType: "application/json",
 				dataType : "text"
 			}).done(function(data){
-				table.ajax.reload();
+				me.table.ajax.reload();
 			}).fail(function(XMLHttpRequest, status, e){
 				alert(e);
 			});				
 		}
 		
-		table.on( 'draw', function () {
+		me.table.on( 'draw', function () {
 			$('.btn').click(function(){
 				//$("#textdialog").dialog({ title: $(this).attr('name')});
 				me.selectedId = $(this).attr('id').split('_')[1];
@@ -111,8 +111,12 @@ class TestItemTable {
 		var ws = new MyWebSocket(function(obj){
 			//console.log(obj);
 			if (obj.signalType == 'ResultUpdated') {
-				table.ajax.reload();
+				me.table.ajax.reload();
 			}
 		});
+	}
+	
+	reload() {
+		this.table.ajax.reload();
 	}
 }

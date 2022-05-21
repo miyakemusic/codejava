@@ -82,6 +82,7 @@ import com.miyake.demo.jsonobject.TestItemDefJson;
 import com.miyake.demo.jsonobject.TestItemJson;
 import com.miyake.demo.jsonobject.TestItemList;
 import com.miyake.demo.jsonobject.TestItemListElement;
+import com.miyake.demo.jsonobject.TestItemNewJson;
 import com.miyake.demo.jsonobject.TestPlan;
 import com.miyake.demo.jsonobject.TestPlan2Element;
 import com.miyake.demo.jsonobject.TesterJson;
@@ -636,6 +637,23 @@ public class TestRestController {
     	return "OK";
     }
     
+	@PostMapping("/addTestItem")
+	public String addTestItem(@RequestBody TestItemNewJson testItem) {
+		for (Long testitem : testItem.testItem) {
+			PortTestEntitySimple e = new PortTestEntitySimple();
+			e.setDirection(testItem.testPoint);
+			e.setPort(testItem.port);
+			e.setTestItem(testitem);
+			try {
+				this.portTestRepositorySimple.save(e);		
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		
+		return "OK";
+	}
     @DeleteMapping("/PortTestEntity")
     public String deletePortTestEntity(@RequestBody PortTestEntity port_tester) {
     	portTestRepository.deleteById(port_tester.getId());
@@ -1033,13 +1051,13 @@ public class TestRestController {
 		String testStatus = progress + "% (" + testedTotal + "/" + totalTestCount + ")";
 		
 		if (failCount > 0) {
-			testStatus = "<label class=\"text-danger\">Fails: " + failCount + "</label><br>" + testStatus;
+			testStatus = testStatus + "<label class=\"text-danger\"> ,Fails:" + failCount + "</label>";
 		}
 		else if (totalTestCount == passCount) {
-			testStatus = "<label class=\"text-success\">Passed</label><br>" + testStatus;
+			testStatus = testStatus + "<label class=\"text-success\">Passed</label>";
 		}
 		else if (testedTotal == 0) {
-			testStatus = "<label class=\"text-dark\">Untested</label><br>" + testStatus;
+			testStatus = testStatus + "<label class=\"text-dark\">Untested</label>";
 		}
 		return testStatus;
 	}
