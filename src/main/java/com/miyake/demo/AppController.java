@@ -239,6 +239,11 @@ public class AppController {
     	return "testerdef";
     }
 	
+	@GetMapping("/testitemdef")
+    public String testitemdef(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    	return "testitemdef";
+    }
+	
     @MessageMapping("/hello")
     @SendTo("/topic/greetings")
     public Greeting greeting(HelloMessage message) throws Exception {

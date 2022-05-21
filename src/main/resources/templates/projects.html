@@ -11,6 +11,7 @@
     <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
     <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/chartjs/2.9.4/Chart.min.js}"></script>
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
 	<script type="text/javascript" th:src="@{/js/mywebsocket.js}"></script>
@@ -29,6 +30,8 @@
 				alert(errorThrown);
 			});
 			
+			$('#projects').css('width', '100%');
+			
 			var table = $('#projects').DataTable({
 				"iDisplayLength": 50,
 				"sAjaxSource": 'projectList',
@@ -45,16 +48,136 @@
 							    "render": function ( data, type, full, meta ) {
 							    	//var url = '/equipmenttopology?id=' + full.id;
 							    	var url = '/projectsummary?id=' + full.id;
-							     	return '<a href="' + url + '" target="_blank">' + full.name + '</a>';     }
-							 }			            
+							     	return '<a href="' + url + '" target="_blank">' + full.name + '</a>';     
+							     }
+							 },
+					         {
+							    "targets": 4,
+							    "render": function ( data, type, full, meta ) {
+							    	var divid = 'chart_' + full.id;
+							    	var html = '';
+//							    	html += '<div>' +  full.progress + '</div>';
+							    	html += '<canvas id="' + divid + '"></canvas>'
+							     	return html;     
+							     }
+							 },						 
 				        ],
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
 					{ "sTitle": "Project", "mData": "name" },
-					{ "sTitle": "Comment", "mData": "comment" }
+					{ "sTitle": "Description", "mData": "comment" },
+					{ "sTitle": "Progress", "mData": "progress" },
+					{ "sTitle": "Progress", "mData": "progress" }
 				]
 			});		
+		    var barOptions_stacked = {
+	    	    tooltips: {
+	    	        enabled: false
+	    	    },
+	    	    hover :{
+	    	        animationDuration:0
+	    	    },
+	    	    scales: {
+	    	        xAxes: [{
+	    	            ticks: {
+	    	            	display:false,
+	    	                beginAtZero:true,
+	    	                fontFamily: "'Open Sans Bold', sans-serif",
+	    	                fontSize:11
+	    	            },
+	    	            scaleLabel:{
+	    	                display:false
+	    	            },
+	    	            gridLines: {
+	    	            	display:true
+	    	            }, 
+	    	            stacked: true
+	    	        }],
+	    	        yAxes: [{
+	    	            gridLines: {
+	    	                display:false,
+	    	                color: "#fff",
+	    	                zeroLineColor: "#fff",
+	    	                zeroLineWidth: 0
+	    	            },
+	    	            ticks: {
+	    	                fontFamily: "'Open Sans Bold', sans-serif",
+	    	                fontSize:11
+	    	            },
+	    	            stacked: true
+	    	        }]
+	    	    },
+	    	    legend:{
+	    	        display:false
+	    	    },
+	    	    
+	    	    animation: {
+	    	        onComplete: function () {
+	    	            var chartInstance = this.chart;
+	    	            var ctx = chartInstance.ctx;
+	    	            ctx.textAlign = "left";
+	    	            ctx.font = "9px Open Sans";
+	    	            ctx.fillStyle = "#fff";
+
+	    	            Chart.helpers.each(this.data.datasets.forEach(function (dataset, i) {
+	    	                var meta = chartInstance.controller.getDatasetMeta(i);
+	    	                Chart.helpers.each(meta.data.forEach(function (bar, index) {
+	    	                    data = dataset.data[index];
+	    	                    if(i==0){
+	    	                        ctx.fillText(data, 50, bar._model.y+4);
+	    	                    } else {
+	    	                        ctx.fillText(data, bar._model.x-25, bar._model.y+4);
+	    	                    }
+	    	                }),this)
+	    	            }),this);
+	    	        }
+	    	    },
+	    	    pointLabelFontFamily : "Quadon Extra Bold",
+	    	    scaleFontFamily : "Quadon Extra Bold",
+	    	    maintainAspectRatio: false,
+	    	};
+			table.on( 'draw', function () {
+				var data = table.rows().data();
+				var map = new Map();
+				for (var i in data) {
+					var o = data[i];
+					
+					var divid = 'chart_' + o.id;
+					$('#' + divid).css('height', '50px')
+				    var ctx = document.getElementById(divid).getContext('2d');
+//				    ctx.height = 5;
+
+			    	var myChart = new Chart(ctx, {
+			    	    type: 'horizontalBar',
+			    	    data: {
+			    	        labels: [""],
+			    	        
+			    	        datasets: [{
+			    	            data: [o.pass],
+			    	            backgroundColor: "green",
+			    	            hoverBackgroundColor: "rgba(50,90,100,1)"
+			    	        },{
+			    	            data: [o.fail],
+			    	            backgroundColor: "red",
+			    	            hoverBackgroundColor: "rgba(140,85,100,1)"
+			    	        },{
+			    	            data: [o.untested],
+			    	            backgroundColor: "gray",
+			    	            hoverBackgroundColor: "rgba(46,185,235,1)"
+			    	        }]
+			    	    },
+
+			    	    options: barOptions_stacked,
+			    	});
+				}				
+			});
 			
+			var ws = new MyWebSocket(function(obj){
+				//console.log(obj);
+				if (obj.signalType == 'ResultUpdated') {
+					table.ajax.reload();
+				}
+			});	
 			
 //			$.ajax({
 //				type: "GET",

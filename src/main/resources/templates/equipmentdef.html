@@ -53,11 +53,19 @@
 									return '<button class="btn btn-link" name="Description" id="description_' + full.id + '">' + full.description + '</button>';
 								}
 							},
+				            {
+								"targets": 3,
+								"render": function ( data, type, full, meta ) {
+									//return '<a href="portsummary?id=' + full.id + '">' + full.ports + '</a>';
+									return '<button class="btn-edit" name="Delete" id="delete_' + full.id + '">Delete</button>';
+								}
+							},	
 				        ],
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
 					{ "sTitle": "Category", "mData": "category" },
 					{ "sTitle": "Description", "mData": "description" },
+					{ "sTitle": "Delete", "mData": null },
 				]
 			});		
 			
@@ -85,6 +93,27 @@
 					selectedId = $(this).attr('id').split('_')[1];
 					selectedField = $(this).attr('id').split('_')[0];
 					dialog.show($(this).text());
+				});
+				$('.btn-edit').click(function(){
+					selectedId = $(this).attr('id').split('_')[1];
+					selectedField = $(this).attr('id').split('_')[0];
+					var obj = new Object();
+					obj.id = selectedId;
+					
+					var json = JSON.stringify(obj);
+					$.ajax({
+						type: "DELETE",
+						url: "/EquipmentCategoryEntity?id=" + selectedId,
+						data: json,
+//						contentType: "application/json",
+						dataType : "text"
+					}).done(function(data){
+						table.ajax.reload();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});						
+//					$("#editdialog").dialog({ title: $(this).attr('name')});
+//					$("#editdialog").dialog('open');
 				});
 			});		
 			

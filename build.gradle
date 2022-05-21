@@ -35,6 +35,9 @@ dependencies {
 	implementation 'org.webjars:stomp-websocket:2.3.3'
 	implementation 'org.webjars:sockjs-client:1.0.2'
 	implementation 'org.webjars:datatables:1.10.19'
+	implementation 'org.webjars:chartjs:2.9.4'
+
+	
 //	implementation group: 'org.webjars.bower', name: 'datatables-tabletools', version: '2.2.4'
 //	implementation 'org.webjars.bower:datatables-tabletools:2.2.4'
 	

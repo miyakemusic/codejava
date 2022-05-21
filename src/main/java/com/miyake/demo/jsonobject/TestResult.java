@@ -1,16 +1,17 @@
 package com.miyake.demo.jsonobject;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import lombok.Data;
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Data
 public class TestResult {
-	private Long testitem;
+	private Long id;
 	private String value;
-	private Long porttest;
 	
 	public TestResult() {}
-	public TestResult(Long testitem, String value) {
-		this.testitem = testitem;
+	public TestResult(Long id, String value) {
+		this.id = id;
 		this.value = value;
 	}
 }

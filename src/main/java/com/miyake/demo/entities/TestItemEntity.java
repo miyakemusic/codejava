@@ -23,6 +23,8 @@ public class TestItemEntity {
 	
 	private Long category;
 	
+	private String description;
+	
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category", insertable = false, updatable = false)
     private TestItemCategoryEntity categoryEntity;

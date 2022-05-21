@@ -1,0 +1,85 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="webjars/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
+	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
+	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript">
+	$(function() {
+		$.ajax({
+			type: "GET",
+			url: "header",
+			dataType : "html"
+		})
+		.done(function(data){ 
+			$('#headerDiv').html(data);
+		})
+		.fail(function(XMLHttpRequest, textStatus, errorThrown){
+			alert(errorThrown);
+		});
+		
+		var resource = 'testItemCategoryJson';
+		$.ajax({
+			type: "GET",
+			url: resource,
+			dataType : "json"
+		})
+		.done(function(data){ 
+			for (var o of data) {
+				$('#category').append($('<option>').html(o.name).val(o.id));
+			}
+			
+		})
+		.fail(function(XMLHttpRequest, textStatus, errorThrown){
+			alert(errorThrown);
+		});	
+
+		
+		var table = $('#testitems').DataTable({
+			"iDisplayLength": 50,
+			"sAjaxSource": 'testitemdefjson',
+			"sAjaxDataProp": "",
+			"columnDefs": [
+			            {
+			                "targets": [ 0 ],
+			                "visible": false,
+			                "searchable": false
+			            },           
+			        ],
+			"aoColumns": [
+				{ "sTitle": "ID", "mData": "id" },
+				{ "sTitle": "Category", "mData": "category" },
+				{ "sTitle": "Test Item", "mData": "testitem" },
+				{ "sTitle": "Description", "mData": "description" },
+			]
+		});		
+		
+		$('#category').change(function(){
+			table.ajax.url('testitemdefjson?category=' + $(this).val()).load();
+		});
+		
+//		var ws = new MyWebSocket(function(obj){
+//			if (obj.signalType == 'Signin' || obj.signalType == 'Signout') {
+//				table.ajax.reload();
+//			}			
+//		});
+	});
+	</script>
+    <title></title>
+</head>
+<body>
+	<div id='headerDiv'></div>
+	<select id="category"></select>
+	<div><table id="testitems" class="table table-striped table-bordered"></table></div>
+</body>
+</html>

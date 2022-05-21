@@ -31,6 +31,8 @@ import com.miyake.demo.jsonobject.ImageJson;
 import com.miyake.demo.jsonobject.ProjectJson;
 import com.miyake.demo.jsonobject.TestPlan2;
 import com.miyake.demo.jsonobject.TestPlan2Element;
+import com.miyake.demo.jsonobject.TestResult;
+import com.miyake.demo.jsonobject.TestResultJson;
 import com.miyake.demo.jsonobject.WebSocketSignal;
 import com.miyake.demo.repository.EquipmentRepository;
 import com.miyake.demo.repository.MyTesterRepository;
@@ -39,6 +41,7 @@ import com.miyake.demo.repository.PortTestRepository;
 import com.miyake.demo.repository.ProjectRepository;
 import com.miyake.demo.repository.TestScenarioItemRepository;
 import com.miyake.demo.repository.TesterRepository;
+import com.miyake.demo.shared.PassFailCalculator;
 
 @RestController
 public class TesterRestController {
@@ -184,6 +187,28 @@ public class TesterRestController {
     	this.myTesterRepository.save(entity);
     	
     	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.Signout, entity);
+    	try {
+	    	TextMessage message = new TextMessage(new ObjectMapper().writeValueAsString(signal));
+	    	for (WebSocketSession s: this.messageHandler.getBrowserSessions()) {
+	    		s.sendMessage(message);
+	    	}
+    	}
+    	catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    	return "OK";
+    }
+    
+    @PostMapping("/result")
+    public String result(@AuthenticationPrincipal CustomTesterDetails userDetails, @RequestBody TestResultJson result) {
+    	PortTestEntity entity = this.portTestRepository.getById(result.id);
+    	entity.setResult(result.value);
+    	PassFailCalculator calc = new PassFailCalculator();
+    	entity.setPassfail(calc.judgePassFail(entity.getCriteria(), result.value));
+    	
+    	this.portTestRepository.save(entity);
+    	
+    	WebSocketSignal signal = new WebSocketSignal(WebSocketSignal.SignalType.ResultUpdated, result);
     	try {
 	    	TextMessage message = new TextMessage(new ObjectMapper().writeValueAsString(signal));
 	    	for (WebSocketSession s: this.messageHandler.getBrowserSessions()) {

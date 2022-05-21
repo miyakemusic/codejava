@@ -78,6 +78,7 @@ import com.miyake.demo.jsonobject.PrimitiveRect;
 import com.miyake.demo.jsonobject.ProjectJson;
 import com.miyake.demo.jsonobject.ProjectSummaryJson;
 import com.miyake.demo.jsonobject.TestCaseRequest;
+import com.miyake.demo.jsonobject.TestItemDefJson;
 import com.miyake.demo.jsonobject.TestItemJson;
 import com.miyake.demo.jsonobject.TestItemList;
 import com.miyake.demo.jsonobject.TestItemListElement;
@@ -669,6 +670,24 @@ public class TestRestController {
     	}
     }
     
+    @GetMapping("/testitemdefjson")
+    public List<TestItemDefJson> testitemdefjson(@RequestParam(value = "category", required=false) Long category) {
+    	List<TestItemDefJson> ret = new ArrayList<TestItemDefJson>();
+    	
+    	if ((category == null) || (category == -1L)) {
+	    	for (TestItemEntity e : this.testItemRepository.findAll()) {
+	    		ret.add(new TestItemDefJson(e.getId(), e.getCategoryEntity().getCategory(), e.getTest_item(), e.getDescription()));
+	    	}    		
+    	}
+    	else {
+	    	for (TestItemEntity e : this.testItemRepository.findByCategory(category)) {
+	    		ret.add(new TestItemDefJson(e.getId(), e.getCategoryEntity().getCategory(), e.getTest_item(), e.getDescription()));
+	    	}
+    	}
+    	return ret;
+    }
+    
+    
     @GetMapping("/TestItemEntity")
     public TestItemEntity getTestItem(@RequestParam(value = "id", required=false) Long id) {
     	return testItemRepository.getById(id);
@@ -899,6 +918,17 @@ public class TestRestController {
     @GetMapping("/TestItemCategoryEntityS")
     public List<TestItemCategoryEntity> getTestItemCategories() {
     	return testItemCategoryRepository.findAll();
+    }
+    
+    @GetMapping("/testItemCategoryJson")
+    public List<IdValue> testItemCategoryJson() {
+    	List<IdValue> ret = new ArrayList<IdValue>();
+    	
+    	ret.add(new IdValue(-1L, "---"));
+    	for (TestItemCategoryEntity e : testItemCategoryRepository.findAll()) {
+    		ret.add(new IdValue(e.getId(), e.getCategory()));
+    	}
+    	return ret;
     }
     
     @PostMapping("/TestItemCategoryEntity")
@@ -1350,6 +1380,12 @@ public class TestRestController {
     	return equipmentCategoryRepository.save(test_item);
     }
 
+    @DeleteMapping("/EquipmentCategoryEntity")
+    public String deleteEquipmentCategory(@RequestParam(value = "id", required=true) Long id) {
+    	equipmentCategoryRepository.deleteById(id);
+    	return "OK";
+    }
+    
     @PostMapping("/updateEquipmentCategory")
     public String updateEquipmentCategory(@RequestBody ElementJson json) {
     	EquipmentCategoryEntity entity = null;
@@ -1415,8 +1451,44 @@ public class TestRestController {
     @GetMapping("/projectList")
     public List<ProjectJson> projectsJson(@AuthenticationPrincipal CustomUserDetails userDetails) {
     	List<ProjectJson> ret = new ArrayList<>();
-    	for (ProjectEntity e : projectRepository.findByUsergroup(userDetails.getUser().getUsergroup())) {
-    		ret.add(new ProjectJson(e.getId(), e.getName(), e.getComment()));
+    	
+    	for (ProjectEntity project : projectRepository.findByUsergroup(userDetails.getUser().getUsergroup())) {
+    		int totalTestCount = 0;
+    		int failCount = 0;
+    		int passCount = 0;
+    		int testedCount = 0;
+    		List<EquipmentEntity>  equipments = this.equipmentRepository.findByProject(project.getId());
+    		
+    		for (EquipmentEntity equipment : equipments) {
+    			for (PortEntity port : equipment.getPorts()) {
+    				List<PortTestEntity> portTests = this.portTestRepository.findByPort(port.getId());      	
+
+    				for (PortTestEntity p : portTests) {
+    					if (p.getPassfail().compareTo(PassFailEnum.Failed) == 0) {
+    						failCount++;
+    					}
+    					else if (p.getPassfail().compareTo(PassFailEnum.Passed) == 0) {
+    						passCount++;
+    					}
+    					else if (p.getPassfail().compareTo(PassFailEnum.Tested) == 0) {
+    						testedCount++;
+    					}
+    					totalTestCount++;
+    				}    				
+    			}
+    		}
+    		
+			int testedTotal = failCount + passCount + testedCount;
+			int progress = (int)(((double)testedTotal/(double)totalTestCount) * 100.0);   		
+    		
+			String cls = "";
+			if (failCount > 0) {
+				cls = "text-danger";
+			}
+			
+			String progressText = progress + "% Total:" +  totalTestCount + ", Pass:" + passCount + ", Fail:<label class=\"" + cls + "\">" + failCount + "</label>";
+    		ret.add(new ProjectJson(project.getId(), project.getName(), project.getComment(), progressText, 
+    				passCount, failCount, totalTestCount - testedTotal));
     	}
     	
     	return ret;
