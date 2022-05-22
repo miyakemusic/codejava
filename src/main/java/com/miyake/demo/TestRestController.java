@@ -954,6 +954,34 @@ public class TestRestController {
     	return testItemCategoryRepository.save(test_item);
     }
     
+    @DeleteMapping("deleteTestItem")
+    public String deleteTestItem(@RequestParam(value = "id", required=true) Long id) {
+    	List<PortTestEntity> tests = this.portTestRepository.findByTestItem(id);
+    	if (tests.size() == 0) {
+    		this.testItemRepository.deleteById(id);
+    	}
+    	else {
+    		for (PortTestEntity t : tests) {
+    			System.out.println(t.port_name);
+    		}
+    	}
+    	return "OK";
+    }
+    
+    @DeleteMapping("deleteTestItemCategory")
+    public String deleteTestItemCategory(@RequestParam(value = "id", required=true) Long id) {
+    	List<TestItemEntity> tests = this.testItemRepository.findByCategory(id);
+    	if (tests.size() == 0) {
+    		this.testItemCategoryRepository.deleteById(id);
+    	}
+    	else {
+    		for (TestItemEntity t : tests) {
+    			System.out.println(t.getTest_item());
+    		}
+    	}
+    	return "OK";
+    }
+    
     @GetMapping("/TesterCapabilityEntityS")
     public List<TesterCapabilityEntity> getTestCapability() {
     	return testerCapabilityRepository.findAll();

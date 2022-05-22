@@ -14,5 +14,6 @@ public interface PortTestRepository extends JpaRepository<PortTestEntity, Long> 
 	@Transactional
 	public void deleteByPort(Long port);
 	public List<PortTestEntity> findByTester(Long testerid);
+	public List<PortTestEntity> findByTestItem(Long id);
 
 }

@@ -1,5 +1,5 @@
 class MyTextDialog {
-	constructor(div, okClicked) {
+	constructor(div, okClicked, title) {
 		this.dialogDiv = div + '_dialog';
 		this.textDiv = div + '_text';
 		$('#' + div).append('<div id="' + this.dialogDiv + '"></div>');
@@ -11,7 +11,7 @@ class MyTextDialog {
 		$("#" + this.dialogDiv).dialog({
 			modal:true,
 			autoOpen: false,
-			title: "",
+			title: title,
 			width: 300,
 			height: 200,
 			buttons: {
