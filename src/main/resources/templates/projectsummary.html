@@ -321,8 +321,9 @@
 </head>
 <body>
 	<div id='headerDiv'></div>
+	<p th:text="${projectName}"></p>
 	<button id="addEquipment">Add Equipment</button> 
-	<a href="equipmenttopology" th:href="@{equipmenttopology(id=${id})}" target="_blank">Link</a>
+	<a href="equipmenttopology" th:href="@{equipmenttopology(id=${id})}" target="_blank">Topology</a>
 	<table id="summarytable" class="table table-striped table-bordered"></table>
 	<div id="textdialog"><input type="text" id="textfield"></div>
 	<div id="optiondialog"><select id="categoryOptions"></select></div>

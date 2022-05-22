@@ -8,6 +8,7 @@ public class TestItemJson {
 	public String criteria;
 	public String result;
 	public String passFail;
+	public String testCategory;
 	
 	public TestItemJson() {}
 	

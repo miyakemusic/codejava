@@ -49,6 +49,7 @@
 <body>
 	<div id='headerDiv'></div>
     <div id="regTesterDialog"></div>
+    <a href="projectsummary" th:href="@{projectsummary(id=${projectid})}"><p th:text="${projectName}"></p></a>
     <h1 th:text="${portname}"></h1>
     <button id="addTestItem">Add</button>
     <div id="addTestItemDialog"></div>

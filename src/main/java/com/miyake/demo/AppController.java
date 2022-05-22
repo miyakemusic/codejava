@@ -105,6 +105,14 @@ public class AppController {
     @GetMapping("/portsummary")
     public String portsummary(Model model, @RequestParam(value = "id", required=true) Long id) {
         model.addAttribute("equipment", id);
+        
+        EquipmentEntity equipment = this.equipmentRepository.getById(id);
+        model.addAttribute("equipmentName", equipment.getName());
+        
+        ProjectEntitySimple project = this.projectRepositorySimple.getById(equipment.getProject());
+        model.addAttribute("projectName", project.getName());
+        model.addAttribute("projectid", project.getId());
+        
         return "portsummary";
     }
     
@@ -130,6 +138,7 @@ public class AppController {
     @GetMapping("/projectsummary")
     public String projectsummary(Model model, @RequestParam(value = "id", required=true) Long id) {
     	model.addAttribute("id", id);
+    	model.addAttribute("projectName", this.projectRepositorySimple.getById(id).getName());
         return "projectsummary";
     }
     
@@ -216,6 +225,11 @@ public class AppController {
 		EquipmentEntity e = this.equipmentRepository.getById(id);
 		
 		model.addAttribute("equipmentname", e.getName());
+		
+		ProjectEntitySimple project = this.projectRepositorySimple.getById( e.getProject() );
+		model.addAttribute("projectid", project.getId());
+		model.addAttribute("projectName", project.getName());
+		
     	return "testsummaryequipment";
     }
 
@@ -225,6 +239,10 @@ public class AppController {
 		
 		PortEntity e = this.portRepository.getById(id);
 		model.addAttribute("portname", e.getPort_name());
+		
+		ProjectEntitySimple project = this.projectRepositorySimple.getById( this.equipmentRepository.getById(e.getEquipment()).getProject() );
+		model.addAttribute("projectid", project.getId());
+		model.addAttribute("projectName", project.getName());
     	return "testsummaryport";
     }
 	

@@ -590,7 +590,8 @@ public class TestRestController {
     		Set<String> testItems = new LinkedHashSet<>();
     		Set<String> testPoints = new LinkedHashSet<>();
     		for (PortTestEntity p : e.getPortTests()) {
-    			testItems.add( p.getTest_itemEntity().getTest_item() );
+//    			testItems.add( p.getTest_itemEntity().getTest_item() );
+    			testItems.add( p.getTest_itemEntity().getCategoryEntity().getCategory() );
     			testPoints.add(p.getDirectionEntity().getName());
     			
     		}
@@ -827,6 +828,8 @@ public class TestRestController {
 					criteria, 
 					result, 
 					testStatus);
+			
+			json.testCategory = portTest.getTest_itemEntity().getCategoryEntity().getCategory();
 			ret.add(json);
 		}
     	

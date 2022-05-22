@@ -61,6 +61,8 @@
 <body>
 	<div id='headerDiv'></div>
     <div id="regTesterDialog"></div>
+    <a href="projectsummary" th:href="@{projectsummary(id=${projectid})}"><p th:text="${projectName}"></p></a>
+    <p th:text="${equipmentName}"></p>
     <button id="createPort">Create Port</button>
     <a href="porttopology" th:href="@{porttopology(id=${equipment})}" target="_blank">Link</a>
     <div id="ports"></div>

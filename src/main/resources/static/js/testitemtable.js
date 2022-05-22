@@ -16,19 +16,19 @@ class TestItemTable {
 			                "searchable": false
 			            },	
 			            {
-							"targets": 4,
+							"targets": 5,
 							"render": function ( data, type, full, meta ) {
 									return '<button class="btn btn-link" name="Criteria" id="criteria_' + full.id + '">' + full.criteria + '</button>';
 							}
 						},	     
 			            {
-							"targets": 5,
+							"targets": 6,
 							"render": function ( data, type, full, meta ) {
 									return '<button class="btn btn-link" name="Result" id="result_' + full.id + '">' + full.result + '</button>';
 							}
 						},	
 			            {
-							"targets": 7,
+							"targets": 8,
 							"render": function ( data, type, full, meta ) {
 									return '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">' + 'Edit' + '</button>';
 							}
@@ -38,6 +38,7 @@ class TestItemTable {
 				{ "sTitle": "ID", "mData": "id" },
 				{ "sTitle": "Port", "mData": "port" },
 				{ "sTitle": "Test Point", "mData": "testPoint" },
+				{ "sTitle": "Test Category", "mData": "testCategory" },
 				{ "sTitle": "Test Item", "mData": "testItem" },
 				{ "sTitle": "Criteria", "mData": "criteria" },
 				{ "sTitle": "Result", "mData": "result" },
