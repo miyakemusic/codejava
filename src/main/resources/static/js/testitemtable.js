@@ -30,7 +30,9 @@ class TestItemTable {
 			            {
 							"targets": 8,
 							"render": function ( data, type, full, meta ) {
-									return '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">' + 'Edit' + '</button>';
+									var html = '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">' + 'Edit' + '</button>';
+									html += '<button class="btn-edit" name="Delete" id="delete_' + full.id + '">' + 'Delete' + '</button>';
+									return html;
 							}
 						},	      
 			        ],
@@ -84,7 +86,7 @@ class TestItemTable {
 		}
 		
 		me.table.on( 'draw', function () {
-			$('.btn').click(function(){
+			$('.btn-edit').click(function(){
 				//$("#textdialog").dialog({ title: $(this).attr('name')});
 				me.selectedId = $(this).attr('id').split('_')[1];
 				//selectedField = $(this).attr('id').split('_')[0];
@@ -96,6 +98,18 @@ class TestItemTable {
 				}
 				else if ($(this).attr('name') == 'Edit') {
 
+				}
+				else if ($(this).attr('name') == 'Delete') {
+					$.ajax({
+						type: "DELETE",
+						url: "deletePortTest?id=" + me.selectedId,
+						contentType: "application/json",
+						dataType : "text"
+					}).done(function(data){
+						me.table.ajax.reload();
+					}).fail(function(XMLHttpRequest, status, e){
+						alert(e);
+					});
 				}
 				else {
 					window.open("testSummaryPort?id=" + me.selectedId, "_blank");

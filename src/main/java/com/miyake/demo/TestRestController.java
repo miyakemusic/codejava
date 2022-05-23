@@ -660,6 +660,12 @@ public class TestRestController {
     	portTestRepository.deleteById(port_tester.getId());
     	return "OK";
     }
+   
+    @DeleteMapping("/deletePortTest")
+    public String deletePortTest(@RequestParam(value = "id", required=true) Long id) {
+    	portTestRepository.deleteById(id);
+    	return "OK";
+    }
     
 //    @DeleteMapping("/PortTestEntity")
 //    public String deletePortTest(@RequestParam(value = "id", required=true) String id) {
@@ -1529,14 +1535,9 @@ public class TestRestController {
     		
 			int testedTotal = failCount + passCount + testedCount;
 			int progress = (int)(((double)testedTotal/(double)totalTestCount) * 100.0);   		
-    		
-			String cls = "";
-			if (failCount > 0) {
-				cls = "text-danger";
-			}
-			
-			String progressText = progress + "% Total:" +  totalTestCount + ", Pass:" + passCount + ", Fail:<label class=\"" + cls + "\">" + failCount + "</label>";
-    		ret.add(new ProjectJson(project.getId(), project.getName(), project.getComment(), progressText, 
+    					
+//			String progressText = progress + "% Total:" +  totalTestCount + ", Pass:" + passCount + ", Fail:<label class=\"" + cls + "\">" + failCount + "</label>";
+    		ret.add(new ProjectJson(project.getId(), project.getName(), project.getComment(), totalTestCount, 
     				passCount, failCount, totalTestCount - testedTotal));
     	}
     	

@@ -240,9 +240,15 @@ public class AppController {
 		PortEntity e = this.portRepository.getById(id);
 		model.addAttribute("portname", e.getPort_name());
 		
-		ProjectEntitySimple project = this.projectRepositorySimple.getById( this.equipmentRepository.getById(e.getEquipment()).getProject() );
+		EquipmentEntity equipment = this.equipmentRepository.getById(e.getEquipment());
+		
+		ProjectEntitySimple project = this.projectRepositorySimple.getById( equipment.getProject() );
 		model.addAttribute("projectid", project.getId());
 		model.addAttribute("projectName", project.getName());
+		
+		model.addAttribute("equipmentid", equipment.getId());
+		model.addAttribute("equipmentName", equipment.getName());
+		
     	return "testsummaryport";
     }
 	

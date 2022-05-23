@@ -89,7 +89,7 @@ class TestItemAdd {
 									"render": function ( data, type, full, meta ) {
 											var id = 'check_' + full.id;
 											me.checks.add(id);
-											return '<input type="checkbox" name="Check" id="' + id + '">';
+											return '<input type="checkbox" name="Check" id="' + id + '" checked>';
 								}
 							},         
 					        ],
