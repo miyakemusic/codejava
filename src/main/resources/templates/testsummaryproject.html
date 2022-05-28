@@ -31,10 +31,10 @@
 				alert(errorThrown);
 			});
 			
-			var equipment = "[[${equipment}]]";
+			var project = "[[${project}]]";
 			
-			var resource = 'testSummaryEquipmentJson?id=' + equipment;
-			var table = new TestItemTable('tests', resource, 'hideequipment');
+			var resource = 'testSummaryProjectJson?id=' + project;
+			var table = new TestItemTable('tests', resource);
 
 		});
 	</script>
@@ -42,8 +42,8 @@
 </head>
 <body>
 	<div id='headerDiv'></div>
-	<a href="projectsummary" th:href="@{projectsummary(id=${projectid})}"><p th:text="${projectName}"></p></a>
-	<h1 th:text="${equipmentname}"></h1>
+	<a href="projectsummary" th:href="@{projectsummary(id=${project})}"><p th:text="${projectName}"></p></a>
+	<h1 th:text="${projectname}"></h1>
     <div id="regTesterDialog"></div>
     <table id="tests" class="table table-striped table-bordered"></table>
 </body>

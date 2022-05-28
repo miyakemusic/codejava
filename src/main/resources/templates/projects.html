@@ -14,6 +14,7 @@
     <script type="text/javascript" th:src="@{/webjars/chartjs/2.9.4/Chart.min.js}"></script>
 	<link rel="stylesheet" type="text/css" href="/webjars/datatables/1.10.19/css/jquery.dataTables.min.css" />
 	<script type="text/javascript" th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+	<script type="text/javascript" th:src="@{/js/testsummaryproject.js}"></script>
 	<script type="text/javascript" th:src="@{/js/mywebsocket.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/css/nav.css}" />
 	<script type="text/javascript">	
@@ -52,6 +53,13 @@
 							     	return '<a href="' + url + '">' + full.name + '</a>';
 							     }
 							 },
+					         {
+								    "targets": 4,
+								    "render": function ( data, type, full, meta ) {
+								    	var url = '/testSummaryProject?id=' + full.id;
+								     	return '<a href="' + url + '">' + full.total + '</a>';    
+								     }
+								 },
 					         {
 							    "targets": 8,
 							    "render": function ( data, type, full, meta ) {

@@ -51,7 +51,7 @@ public abstract class CandidateCalculator {
 
 
 	private List<PortTestEntity> getTestItems(Long portid) {
-		List<PortTestEntity> portTests = portTestRepository().findByPort(portid);
+		List<PortTestEntity> portTests = findByPort(portid);
 		return portTests;
 	}
 	
@@ -59,7 +59,7 @@ public abstract class CandidateCalculator {
 
 	abstract protected TesterRepository testerRepository();
 
-	abstract protected PortTestRepository portTestRepository();
+	abstract protected List<PortTestEntity> findByPort(Long portid);
 
 
 }

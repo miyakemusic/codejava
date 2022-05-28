@@ -40,30 +40,44 @@ public class PortEntity {
 	private Long equipment;
     
 	private Long opposite;
-	
+
 	@OneToMany(mappedBy="port")
-	private List<PortTestEntity> portTests;
+	private List<PortTestGroupEntity> testGroup;
+	
+//	@OneToMany(mappedBy="port")
+//	private List<PortTestEntity> portTests;
 	
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "connector_type", insertable = false, updatable = false, nullable = true)
     private ConnectorEntity connector_typeEntity;
 
-    @Override
-    public String toString() {
-    	String ret = "";
-    	List<String> in = new ArrayList<>();
-    	List<String> out = new ArrayList<>();
-    	
-    	for (PortTestEntity p : portTests) {
-    		if (p.getDirection() == 0) {
-    			in.add(p.getTest_itemEntity().toString());
-    		}
-    		else {
-    			out.add(p.getTest_itemEntity().toString());
-    		}
-    	}
-    	
-    	return "in:" + in.toString() + ", out=" + out.toString();
-    }    
+//    @Override
+//    public String toString() {
+//    	String ret = "";
+//    	List<String> in = new ArrayList<>();
+//    	List<String> out = new ArrayList<>();
+//    	
+//    	for (PortTestEntity p : portTests) {
+//    		if (p.getDirection() == 0) {
+//    			in.add(p.getTest_itemEntity().toString());
+//    		}
+//    		else {
+//    			out.add(p.getTest_itemEntity().toString());
+//    		}
+//    	}
+//    	
+//    	return "in:" + in.toString() + ", out=" + out.toString();
+//    }    
     
+    @Override
+    public PortEntity clone() {
+		try {
+			PortEntity ret = (PortEntity)super.clone();
+			return ret;
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+    	
+    	return null;
+    }
 }

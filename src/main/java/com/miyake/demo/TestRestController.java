@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import com.miyake.demo.entities.PortEntitySimple;
 import com.miyake.demo.entities.PortPresentationEntity;
 import com.miyake.demo.entities.PortTestEntity;
 import com.miyake.demo.entities.PortTestEntitySimple;
+import com.miyake.demo.entities.PortTestGroupEntity;
 import com.miyake.demo.entities.PortTestTemplateBindEntity;
 import com.miyake.demo.entities.PortTestTemplateEntity;
 import com.miyake.demo.entities.ProductType;
@@ -99,6 +101,7 @@ import com.miyake.demo.repository.PortDirectionRepository;
 import com.miyake.demo.repository.PortPresentationRepository;
 import com.miyake.demo.repository.PortRepository;
 import com.miyake.demo.repository.PortRepositorySimple;
+import com.miyake.demo.repository.PortTestGroupRepository;
 import com.miyake.demo.repository.PortTestRepository;
 import com.miyake.demo.repository.PortTestRepositorySimple;
 import com.miyake.demo.repository.PortTestTemplateBindRepositoty;
@@ -146,6 +149,9 @@ public class TestRestController {
 
     @Autowired
     private PortTestRepositorySimple portTestRepositorySimple;
+    
+    @Autowired
+    private PortTestGroupRepository portTestGroupRepository;
     
     @Autowired
     private TestItemRepository testItemRepository;
@@ -370,27 +376,30 @@ public class TestRestController {
     
     @PostMapping("/PortEntity/copy")
     public PortEntity copyPort(@RequestBody PortEntity port) {
+    	// TODO
     	
-    	List<PortTestEntity> tests = portTestRepository.findByPort(port.getId());
+//    	List<PortTestEntity> tests = portTestRepository.findByPort(port.getId());
     	
-    	List<PortEntity> ports = portRepository.findByEquipment(port.getEquipment());
-    	for (PortEntity p : ports) {
-    		if (p.getId().equals(port.getId())) {
-    			continue;
-    		}
-    		
-    		portTestRepository.deleteByPort(p.getId());
-    		
-    		for (PortTestEntity test : tests) {
-    			PortTestEntity t = new PortTestEntity();
-    			t.setPort(p.getId());
-    			t.setDirection(test.getDirection());
-    			t.setTestItem(test.getTestItem());
-    			portTestRepository.save(t);
-    		}
+    	
+    	
+//    	List<PortEntity> ports = portRepository.findByEquipment(port.getEquipment());
+//    	for (PortEntity p : ports) {
+//    		if (p.getId().equals(port.getId())) {
+//    			continue;
+//    		}
+//    		
+//    		portTestRepository.deleteByPort(p.getId());
+//    		
+//    		for (PortTestEntity test : tests) {
+//    			PortTestEntity t = new PortTestEntity();
+//    			t.setPorttestgroup(p.getId());
+//    			t.setDirection(test.getDirection());
+//    			t.setTestItem(test.getTestItem());
+//    			portTestRepository.save(t);
+//    		}
+//
+//    	}
 
-    	}
-    	//this.portRepository.save(port);
     	return port;
     }
     
@@ -546,28 +555,59 @@ public class TestRestController {
     	return this.portTestRepository.getById(id);
     }
 
-    @GetMapping("/PortTestEntityByEquipment")
-    public List<PortTestEntity> getPortTestEntityByEquipment(@RequestParam(value = "equipment", required=true) Long equipment) {
-    	List<PortTestEntity> ret = new ArrayList<>();
-    	List<PortEntitySimple> ports = this.portRepositorySimple.findByEquipment(equipment);
+//    @GetMapping("/PortTestEntityByEquipment")
+//    public List<PortTestEntity> getPortTestEntityByEquipment(@RequestParam(value = "equipment", required=true) Long equipment) {
+//    	List<PortTestEntity> ret = new ArrayList<>();
+//    	List<PortEntitySimple> ports = this.portRepositorySimple.findByEquipment(equipment);
+//    	
+//    	for (PortEntitySimple port : ports) {
+//    		List<PortTestEntity> list = this.portTestRepository.findByPort(port.getId());
+//  //  		list.forEach(l -> {l.port_name = port.getPort_name();});
+//    		ret.addAll(list);
+//    	}
+//    	
+//    	return ret;
+//    }
+    
+    @GetMapping("/PortTestJsonByEquipment")
+    public List<PortTestJson> getPortTestJsonByEquipment(@RequestParam(value = "equipment", required=true) Long equipment) {
+    	List<PortTestJson> ret = new ArrayList<>();
     	
-    	for (PortEntitySimple port : ports) {
-    		List<PortTestEntity> list = this.portTestRepository.findByPort(port.getId());
-    		list.forEach(l -> {l.port_name = port.getPort_name();});
-    		ret.addAll(list);
+    	List<PortEntity> ports = this.portRepository.findByEquipment(equipment);
+    	for (PortEntity port : ports) {
+    		for (PortTestGroupEntity portTestGroupEntity : port.getTestGroup()) {
+    			for (PortTestEntity test : portTestGroupEntity.getPortTests()) {
+        			ret.add(new PortTestJson(test.getId(), 
+        					port.getPort_name(), test.getDirectionEntity().getName(), 
+        					test.getTest_itemEntity().getCategoryEntity().getCategory(),
+        					test.getTestItem(),
+        					test.getTest_itemEntity().getTest_item(), 
+        					test.getCriteria(), test.getResult(), 
+        					test.getPassfail().toString()));    				
+    			}
+    		}
+
+    		
     	}
-    	
+
     	return ret;
     }
     
+    
+    
     @GetMapping("/PortTestEntityS")
-    public List<PortTestEntity> createPortTesters(@RequestParam(value = "parent", required=false) Long parent) {
-    	List<PortTestEntity> ret = null;
-    	if (parent == null) {
+    public List<PortTestEntity> createPortTesters(@RequestParam(value = "parent", required=false) Long port) {
+    	List<PortTestEntity> ret = new ArrayList<>();
+    	if (port == null) {
     		ret = portTestRepository.findAll();
     	}
     	else {
-    		ret = portTestRepository.findByPort(parent);
+    		PortEntity portEntity = this.portRepository.getById(port);
+    		for (PortTestGroupEntity group : portEntity.getTestGroup()) {
+    			for (PortTestEntity test : group.getPortTests()) {
+    				ret.add(test);
+    			}
+    		}
     	}
 
 //    	ret.forEach(l -> {l.port_name = port.getPort_name();});
@@ -579,8 +619,8 @@ public class TestRestController {
     	List<PortSummaryJson> ret = new ArrayList<>();
     	List<PortEntity> ports = this.portRepository.findByEquipment(id);
     	for (PortEntity e : ports) {
-    		String linkEquipment = "";
-    		String linkPort = "";
+    		String linkEquipment = "-";
+    		String linkPort = "-";
     		if (e.getOpposite() != null) {
     			PortEntity oppositePortEntity = this.portEntity(e.getOpposite());
     			EquipmentEntity oppositeEquipment = this.equipmentRepository.getById(oppositePortEntity.getEquipment());
@@ -589,26 +629,37 @@ public class TestRestController {
     		}
     		Set<String> testItems = new LinkedHashSet<>();
     		Set<String> testPoints = new LinkedHashSet<>();
-    		for (PortTestEntity p : e.getPortTests()) {
-//    			testItems.add( p.getTest_itemEntity().getTest_item() );
-    			testItems.add( p.getTest_itemEntity().getCategoryEntity().getCategory() );
-    			testPoints.add(p.getDirectionEntity().getName());
-    			
-    		}
     		
-    		List<PortTestEntity> portTestEntities = this.portTestRepository.findByPort(e.getId());
-    		String testStatus = createTestStatus(portTestEntities);
+    		String testStatus = "-";
     		String cable = "-";
-    		if (e.getCabletype() != null) {
-    			cable = this.cableRepository.getById(e.getCabletype()).getName();
+    		for (PortTestGroupEntity group : e.getTestGroup()) {
+        		for (PortTestEntity p : group.getPortTests()) {
+//        			testItems.add( p.getTest_itemEntity().getTest_item() );
+        			testItems.add( p.getTest_itemEntity().getCategoryEntity().getCategory() );
+        			testPoints.add(p.getDirectionEntity().getName());
+        			
+        		} 		
+        		//List<PortTestEntity> portTestEntities = this.portTestRepository.findByPort(e.getId());
+        		testStatus = createTestStatus(group.getPortTests());
+        		
+        		if (e.getCabletype() != null) {
+        			cable = this.cableRepository.getById(e.getCabletype()).getName();
+        		}
+
     		}
     		ret.add(new PortSummaryJson(e.getId(), e.getPort_name(), linkEquipment, linkPort, cable, formatArrayString(testPoints), formatArrayString(testItems), testStatus));
+
     	}
     	return ret;
     }
 
 	private String formatArrayString(Set<String> testPoints) {
-		return testPoints.toString().replace(",","<br>").replace("[", "").replace("]", "");
+		if (testPoints.size() > 0) {
+			return testPoints.toString().replace(",","<br>").replace("[", "").replace("]", "");
+		}
+		else {
+			return "-";
+		}
 	}
     
     @PostMapping("/PortTestJson")
@@ -617,7 +668,7 @@ public class TestRestController {
     	entity.setCriteria(port_test.criteria);
     	entity.setResult(port_test.result);
     	entity.setDirection(port_test.direction);
-    	entity.setTestItem(port_test.test_item);
+    	entity.setTestItem(port_test.testItemId);
    
     	this.portTestRepositorySimple.save(entity);
     	return entity;
@@ -640,13 +691,20 @@ public class TestRestController {
     
 	@PostMapping("/addTestItem")
 	public String addTestItem(@RequestBody TestItemNewJson testItem) {
+//		PortEntity portEntity = this.portRepository.getById(testItem.port);
+
+		PortTestGroupEntity group = new PortTestGroupEntity();
+		group.setName(testItem.testGroupName);
+		group.setPort(testItem.port);
+		group = this.portTestGroupRepository.save(group);
+		
 		for (Long testitem : testItem.testItem) {
-			PortTestEntitySimple e = new PortTestEntitySimple();
+			PortTestEntity e = new PortTestEntity();
 			e.setDirection(testItem.testPoint);
-			e.setPort(testItem.port);
+			e.setPorttestgroup(group.getId());
 			e.setTestItem(testitem);
 			try {
-				this.portTestRepositorySimple.save(e);		
+				this.portTestRepository.save(e);		
 			}
 			catch (Exception ex) {
 				ex.printStackTrace();
@@ -745,36 +803,36 @@ public class TestRestController {
     
     @PostMapping("/PortTestTemplate")
     public String portTestTemplate(@RequestBody PortTemplate portTemplate) {
-    	PortTestTemplateEntity portTestTemplateEntity = new PortTestTemplateEntity();
-    	portTestTemplateEntity.setName(portTemplate.name);
-    	portTestTemplateEntity = this.portTestTemplateRepository.save(portTestTemplateEntity);
-    	
-    	List<PortTestEntitySimple> refPortTests = this.portTestRepositorySimple.findByPort(portTemplate.portid);
-    	
-    	for (PortTestEntitySimple refPortTest : refPortTests) {
-    		PortTestEntitySimple newPortTest = refPortTest.clone();
-    		newPortTest = this.portTestRepositorySimple.save(newPortTest);
-    		
-    		PortTestTemplateBindEntity bind = new PortTestTemplateBindEntity();
-    		bind.setPort_test(newPortTest.getId());
-    		bind.setTemplate(portTestTemplateEntity.getId());
-    		
-    		this.portTestTemplateBindRepository.save(bind);
-    	}
+//    	PortTestTemplateEntity portTestTemplateEntity = new PortTestTemplateEntity();
+//    	portTestTemplateEntity.setName(portTemplate.name);
+//    	portTestTemplateEntity = this.portTestTemplateRepository.save(portTestTemplateEntity);
+//    	
+//    	List<PortTestEntitySimple> refPortTests = this.portTestRepositorySimple.findByPort(portTemplate.portid);
+//    	
+//    	for (PortTestEntitySimple refPortTest : refPortTests) {
+//    		PortTestEntitySimple newPortTest = refPortTest.clone();
+//    		newPortTest = this.portTestRepositorySimple.save(newPortTest);
+//    		
+//    		PortTestTemplateBindEntity bind = new PortTestTemplateBindEntity();
+//    		bind.setPort_test(newPortTest.getId());
+//    		bind.setTemplate(portTestTemplateEntity.getId());
+//    		
+//    		this.portTestTemplateBindRepository.save(bind);
+//    	}
     	return "OK";
     }
     
     @PostMapping("/applyPortTemplate")
     public String applyPortTemplate(@RequestBody PortTemplate portTemplate) {
-    	this.portTestRepository.deleteByPort(portTemplate.portid);
-    	
-    	List<PortTestTemplateBindEntity> items = this.portTestTemplateBindRepository.findByTemplate(portTemplate.templateid);
-    	for (PortTestTemplateBindEntity templateItem: items) {
-    		PortTestEntitySimple ref = this.portTestRepositorySimple.getById(templateItem.getPort_test());
-    		PortTestEntitySimple newPortTest = ref.clone();
-    		newPortTest.setPort(portTemplate.portid);    		
-    		this.portTestRepositorySimple.save(newPortTest);
-    	}
+//    	this.portTestRepository.deleteByPort(portTemplate.portid);
+//    	
+//    	List<PortTestTemplateBindEntity> items = this.portTestTemplateBindRepository.findByTemplate(portTemplate.templateid);
+//    	for (PortTestTemplateBindEntity templateItem: items) {
+//    		PortTestEntitySimple ref = this.portTestRepositorySimple.getById(templateItem.getPort_test());
+//    		PortTestEntitySimple newPortTest = ref.clone();
+//    		newPortTest.setPort(portTemplate.portid);    		
+//    		this.portTestRepositorySimple.save(newPortTest);
+//    	}
     	return "OK";
     }
     
@@ -792,29 +850,56 @@ public class TestRestController {
     	
     	List<PortEntity> ports = this.portRepository.findByEquipment(id);
     	for (PortEntity port : ports) {
-    		List<PortTestEntity> portTests = this.portTestRepository.findByPort(port.getId());
-    		for (PortTestEntity portTest : portTests) {
-    			String testStatus = createTestStatusLabel(portTest);
-    			TestItemJson json = new TestItemJson(
-    					portTest.getId(), 
-    					port.getPort_name(),
-    					portTest.getDirectionEntity().getName(), 
-    					portTest.getTest_itemEntity().getTest_item(),
-    					portTest.getCriteria(), 
-    					portTest.getResult(), 
-    					testStatus);
-    			ret.add(json);
+    		for (PortTestGroupEntity group : port.getTestGroup()) {
+        		List<PortTestEntity> portTests = group.getPortTests(); //this.portTestRepository.findByPort(port.getId());
+        		for (PortTestEntity portTest : portTests) {
+        			String testStatus = createTestStatusLabel(portTest);
+        			TestItemJson json = new TestItemJson().equipment(
+        					portTest.getId(), 
+        					port.getPort_name(),
+        					portTest.getDirectionEntity().getName(), 
+        					portTest.getTest_itemEntity().getCategoryEntity().getCategory(),
+        					portTest.getTest_itemEntity().getTest_item(),
+        					portTest.getCriteria(), 
+        					portTest.getResult(), 
+        					testStatus);
+        			ret.add(json);
+        		}   			
     		}
+
+
     	}
     	
     	return ret;
     }
     
-    @GetMapping("/testSummaryPortJson")
-    public List<TestItemJson> testSummaryPortJson(@RequestParam(value = "id", required=true) Long id) {
+    private List<PortTestEntity> findPortTestEntitiesByPort(Long port) {
+    	List<PortTestEntity> ret = new ArrayList<PortTestEntity>();
+    	
+    	List<PortTestGroupEntity> groups = this.portTestGroupRepository.findByPort(port);
+		for (PortTestGroupEntity group : groups) {
+    		List<PortTestEntity> portTests = group.getPortTests();
+    		ret.addAll(portTests);
+		}
+
+    	return ret;
+    }
+   
+    private List<PortTestEntity> findPortTestEntitiesByEquipment(Long equipment) {
+    	List<PortTestEntity> ret = new ArrayList<PortTestEntity>();
+
+    	List<PortEntity> ports = this.portRepository.findByEquipment(equipment);
+    	for (PortEntity port: ports) {
+    		ret.addAll(this.findPortTestEntitiesByPort(port.getId()));
+    	}
+    	return ret;
+    }
+    
+    @GetMapping("/testDetailPortJson")
+    public List<TestItemJson> testDetailPortJson(@RequestParam(value = "id", required=true) Long id) {
     	List<TestItemJson> ret = new ArrayList<>();
     	
-		List<PortTestEntity> portTests = this.portTestRepository.findByPort(id);
+		List<PortTestEntity> portTests = this.findPortTestEntitiesByPort(id);
 		for (PortTestEntity portTest : portTests) {
 			String criteria = portTest.getCriteria();
 			if (criteria == null || criteria.isEmpty()) {
@@ -826,10 +911,12 @@ public class TestRestController {
 			}
 			
 			String testStatus = createTestStatusLabel(portTest);
-
-			TestItemJson json = new TestItemJson(
+		
+			TestItemJson json = new TestItemJson().port(
 					portTest.getId(), 
 					portTest.getDirectionEntity().getName(), 
+					portTest.getPortTestGroupEntity().getName(),
+					portTest.getTest_itemEntity().getCategoryEntity().getCategory(),
 					portTest.getTest_itemEntity().getTest_item(),
 					criteria, 
 					result, 
@@ -842,6 +929,90 @@ public class TestRestController {
     	return ret;
     }
 
+    @GetMapping("/testSummaryPortJson")
+    public List<TestItemJson> testSummaryPortJson(@RequestParam(value = "id", required=true) Long id) {
+    	List<TestItemJson> ret = new ArrayList<>();
+    	
+		List<PortTestEntity> portTests = this.findPortTestEntitiesByPort(id);
+		for (PortTestEntity portTest : portTests) {
+			String criteria = portTest.getCriteria();
+			if (criteria == null || criteria.isEmpty()) {
+				criteria = "-";
+			}
+			String result = portTest.getResult();
+			if (result == null || result.isEmpty()) {
+				result = "-";
+			}
+			
+			String testStatus = createTestStatusLabel(portTest);
+		
+			TestItemJson json = new TestItemJson().port(
+					portTest.getId(), 
+					portTest.getDirectionEntity().getName(), 
+					portTest.getPortTestGroupEntity().getName(),
+					portTest.getTest_itemEntity().getCategoryEntity().getCategory(),
+					portTest.getTest_itemEntity().getTest_item(),
+					criteria, 
+					result, 
+					testStatus);
+			
+			ret.add(json);
+		}
+    	
+    	return marge(ret);
+    }
+    
+    private List<TestItemJson> marge(List<TestItemJson> original) {
+    	List<TestItemJson> ret = new ArrayList<>();
+    	Map<String, List<TestItemJson>> map = new LinkedHashMap<>();
+    	
+    	for (TestItemJson o : original) {
+    		String key = o.testPoint + o.testGroup;
+    		if (!map.containsKey(key)) {
+    			map.put(key, new ArrayList<>());
+    		}
+    		map.get(key).add(o);
+    	}
+    	
+    	for (String key : map.keySet()) {
+    		TestItemJson representative = null;
+    		for (TestItemJson o : map.get(key)) {
+    			representative = o;
+    		}
+    		ret.add(representative);
+    	}
+    	return ret;
+	}
+
+	@GetMapping("/testSummaryProjectJson")
+    public List<TestItemJson> testSummaryProjectJson(@RequestParam(value = "id", required=true) Long id) {
+    	List<TestItemJson> ret = new ArrayList<>();
+    	
+    	List<EquipmentEntity> equipments = this.equipmentRepository.findByProject(id);
+    	
+    	for (EquipmentEntity equipment : equipments) {
+	    	List<PortEntity> ports = this.portRepository.findByEquipment(equipment.getId());
+	    	for (PortEntity port : ports) {
+	    		List<PortTestEntity> portTests = this.findPortTestEntitiesByPort(port.getId());
+	    		for (PortTestEntity portTest : portTests) {
+	    			String testStatus = createTestStatusLabel(portTest);
+	    			TestItemJson json = new TestItemJson().project(
+	    					portTest.getId(), 
+	    					equipment.getName(),
+	    					port.getPort_name(),
+	    					portTest.getDirectionEntity().getName(), 
+	    					portTest.getTest_itemEntity().getCategoryEntity().getCategory(),
+	    					portTest.getTest_itemEntity().getTest_item(),
+	    					portTest.getCriteria(), 
+	    					portTest.getResult(), 
+	    					testStatus);
+	    			ret.add(json);
+	    		}
+	    	}
+    	}
+    	return ret;
+    }
+    
 	private String createTestStatusLabel(PortTestEntity portTest) {
 		String cls = "";
 		if (portTest.getPassfail().compareTo(PassFailEnum.Failed) == 0) {
@@ -894,7 +1065,7 @@ public class TestRestController {
     	for (PortEntity port : ports) {
     		TestItemListElement element = ret.createPort(port.getId(), port.getPort_name());
 
-    		for (PortTestEntity portTest : port.getPortTests()) {
+    		for (PortTestEntity portTest : this.findPortTestEntitiesByPort(port.getId())) {
     			List<String> candidates = new ArrayList<>();
     			for (TesterEntity tester : testers) {
     				if (tmpTesterCapa.get(tester.getId()).contains(portTest.getTestItem())) {
@@ -926,7 +1097,7 @@ public class TestRestController {
     	
     	List<PortEntity> ports = this.portRepository.findByEquipment(equipmentid);
     	for (PortEntity port : ports) {
-    		for (PortTestEntity portTest : port.getPortTests()) {
+    		for (PortTestEntity portTest : this.findPortTestEntitiesByPort(port.getId())) {
     			
     			for (TesterCapabilityEntity e:  tester.getTestItems()) {
     				if (e.getTestItem() == portTest.getTestItem()) {
@@ -971,7 +1142,7 @@ public class TestRestController {
     	}
     	else {
     		for (PortTestEntity t : tests) {
-    			System.out.println(t.port_name);
+    	//		System.out.println(t.port_name);
     		}
     	}
     	return "OK";
@@ -1058,7 +1229,7 @@ public class TestRestController {
     			location = equipment.getAddress();
     		}
     		
-    		List<PortTestEntity> portTestEntities = this.getPortTestEntityByEquipment(equipment.getId());
+    		List<PortTestEntity> portTestEntities = this.findPortTestEntitiesByEquipment(equipment.getId());
     		String testStatus = createTestStatus(portTestEntities);
     		
     		ret.add(new ProjectSummaryJson(equipment.getId(), category, equipment.getName(), location, ports, testStatus));
@@ -1181,7 +1352,14 @@ public class TestRestController {
     	this.portRepository.deleteByEquipment(id);
     	for (PortEntity port : ports) {
     		this.portPresentationRepository.deleteByPort(port.getId());
-    		this.portTestRepository.deleteByPort(port.getId());
+    		
+    		for (PortTestGroupEntity testGroup : port.getTestGroup()) {
+    			this.portTestRepository.deleteByPorttestgroup(testGroup.getId());
+//    			for (PortTestEntity portTest : testGroup.getPortTests()) {
+//    				this.portTestRepository.deleteByPort(portTest.getId());
+//    			}
+    		}
+    		
     	}
     	return "OK";
     }
@@ -1233,13 +1411,27 @@ public class TestRestController {
 	    		newPortPresentation.setPort(newPort.getId());
 	    		this.portPresentationRepository.save(newPortPresentation);
 	    		
-	    		List<PortTestEntitySimple> portTests = this.portTestRepositorySimple.findByPort(port.getId());
+	    		List<PortTestGroupEntity> portTestGroups = this.portTestGroupRepository.findByPort(port.getId());
 	    		
-	    		for (PortTestEntitySimple portTest : portTests) {
-	    			PortTestEntitySimple newPortTest = portTest.clone();
-	    			newPortTest.setPort(newPort.getId());
-	    			this.portTestRepositorySimple.save(newPortTest);
+	    		for (PortTestGroupEntity portTestGroup : portTestGroups) {
+		    		//List<PortTestEntity> portTests = this.portTestRepository.findByPorttestgroup(port.getId());
+	    			PortTestGroupEntity newPortTestGroup = portTestGroup.clone();
+	    			
+	    			newPortTestGroup.setPort(newPort.getId());
+	    			newPortTestGroup = this.portTestGroupRepository.save(newPortTestGroup);
+	    			
+	    			for (PortTestEntity portTest : portTestGroup.getPortTests()) {		    		
+	    				PortTestEntity newPortTest = portTest.clone();
+	    				
+	    				newPortTest.setPorttestgroup(newPortTestGroup.getId());
+
+		    			this.portTestRepository.save(newPortTest); 	    				
+	    			}
+			
 	    		}
+	    		
+	    		
+
 	    	}
     	}
     	return equipment;
@@ -1316,29 +1508,28 @@ public class TestRestController {
     }
     
     @GetMapping("/copyPort")
-    public PortEntitySimple copyPort(@RequestParam(value = "id", required=true) Long id, @RequestParam(value = "number", required=false) Integer number) {
-    	PortEntitySimple original = this.portRepositorySimple.getById(id);
-    	List<PortTestEntity> portTests = this.portTestRepository.findByPort(original.getId());
-    	
+    public PortEntity copyPort(@RequestParam(value = "id", required=true) Long id, @RequestParam(value = "number", required=false) Integer number) {
+    	PortEntity original = this.portRepository.getById(id);
+ //   	List<PortTestEntity> portTests = this(original.getId())
     	AutoName autoName = new AutoName(number, original.getPort_name());
-
     	
     	for (int i = 0; i < autoName.size(); i++) {
-	    	PortEntitySimple newPort = original.clone();
+	    	PortEntity newPort = original.clone();
 	    	newPort.setPort_name(autoName.nextName());
-	    	newPort = this.portRepositorySimple.save(newPort);
+	    	newPort = this.portRepository.save(newPort);
 	    	
-	    	for (PortTestEntity portTest : portTests) {
-	    		PortTestEntity newPortTest = portTest.clone();
-	    		newPortTest.setPort(newPort.getId());
-	    		this.portTestRepository.save(newPortTest);
+	    	for (PortTestGroupEntity group : original.getTestGroup()) {
+		    	for (PortTestEntity portTest : group.getPortTests()) {
+		    		PortTestEntity newPortTest = portTest.clone();
+		    		newPortTest.setPorttestgroup(group.getId());
+		    		this.portTestRepository.save(newPortTest);
+		    	}	    		
 	    	}
-	    	
+
 	    	PortPresentationEntity presentation = this.portPresentationRepository.findByPort(original.getId()).clone();
 	    	presentation.setX(presentation.getX());
 	    	presentation.setY(presentation.getY() + 10 * (i+1));
 	    	presentation.setPort(newPort.getId());
-	    	
 	    	
 	    	this.portPresentationRepository.save(presentation);
     	}
@@ -1516,7 +1707,7 @@ public class TestRestController {
     		
     		for (EquipmentEntity equipment : equipments) {
     			for (PortEntity port : equipment.getPorts()) {
-    				List<PortTestEntity> portTests = this.portTestRepository.findByPort(port.getId());      	
+    				List<PortTestEntity> portTests = this.findPortTestEntitiesByPort(port.getId());      	
 
     				for (PortTestEntity p : portTests) {
     					if (p.getPassfail().compareTo(PassFailEnum.Failed) == 0) {
@@ -1784,9 +1975,10 @@ public class TestRestController {
 			}
 
 			@Override
-			protected PortTestRepository portTestRepository() {
-				return portTestRepository;
+			protected List<PortTestEntity> findByPort(Long portid) {
+				return findPortTestEntitiesByPort(portid);
 			}
+
     		
     	};
     	return calculator.getMap();
@@ -1949,7 +2141,7 @@ public class TestRestController {
     		List<PortEntity> ports = this.portRepository.findByEquipment(equipment.getId());
     		
     		for (PortEntity port : ports) {
-    			for (PortTestEntity portTest : port.getPortTests()) {
+    			for (PortTestEntity portTest : this.findPortTestEntitiesByPort(port.getId())) {
         			portTest.setResult("");
         			portTest.setPassfail(PassFailEnum.Untested);
         			
@@ -1988,33 +2180,33 @@ public class TestRestController {
     	return e;
     }
     
-    @GetMapping("/testPlan")
-    public TestPlan testPlan(@AuthenticationPrincipal CustomUserDetails userDetails) {
-    	TestPlan testPlan = new TestPlan();
-    	
-    	Long mytesterid = userDetails.getUser().getId();
-    	MyTesterEntity mytester = this.myTesterRepository.getById(mytesterid);
-    	TesterEntity tester = this.testerRepository.getById(mytester.getTester());
-    	List<Long> supportids = new ArrayList<>();
-    	tester.getTestItems().forEach(c -> supportids.add(c.getTestItem()));
-    	
-    	List<EquipmentEntity> equipments = this.equipmentRepository.findByStatus(1);
-    	for (EquipmentEntity equipment : equipments) {
-    		for (PortEntity port : this.portRepository.findByEquipment(equipment.getId())) {
-    	    	List<PortTestEntity> porttests = this.portTestRepository.findByPort(port.getId());
-    	    	for (PortTestEntity pte : porttests) {
-    	    		boolean support = supportids.contains(pte.getTestItem());
-    	    		testPlan.equipment(equipment.getId()).port(pte.getPort()).testItem(pte.getId(), pte.getTestItem(), 
-    	    				pte.getDirection(), pte.getTester() , pte.getResult(), support);
-    	    		
-    	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(pte.getPort(), 
-    	    				this.portRepository.getById(pte.getPort()).getPort_name()).testItem(pte.getTestItem(), pte.getTest_itemEntity().getTest_item());
-    	    	}    			
-    		}
-    	}
-
-    	return testPlan;
-    }
+//    @GetMapping("/testPlan")
+//    public TestPlan testPlan(@AuthenticationPrincipal CustomUserDetails userDetails) {
+//    	TestPlan testPlan = new TestPlan();
+//    	
+//    	Long mytesterid = userDetails.getUser().getId();
+//    	MyTesterEntity mytester = this.myTesterRepository.getById(mytesterid);
+//    	TesterEntity tester = this.testerRepository.getById(mytester.getTester());
+//    	List<Long> supportids = new ArrayList<>();
+//    	tester.getTestItems().forEach(c -> supportids.add(c.getTestItem()));
+//    	
+//    	List<EquipmentEntity> equipments = this.equipmentRepository.findByStatus(1);
+//    	for (EquipmentEntity equipment : equipments) {
+//    		for (PortEntity port : this.portRepository.findByEquipment(equipment.getId())) {
+//    	    	List<PortTestEntity> porttests = this.portTestRepository.findByPort(port.getId());
+//    	    	for (PortTestEntity pte : porttests) {
+//    	    		boolean support = supportids.contains(pte.getTestItem());
+//    	    		testPlan.equipment(equipment.getId()).port(pte.getPort()).testItem(pte.getId(), pte.getTestItem(), 
+//    	    				pte.getDirection(), pte.getTester() , pte.getResult(), support);
+//    	    		
+//    	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(pte.getPort(), 
+//    	    				this.portRepository.getById(pte.getPort()).getPort_name()).testItem(pte.getTestItem(), pte.getTest_itemEntity().getTest_item());
+//    	    	}    			
+//    		}
+//    	}
+//
+//    	return testPlan;
+//    }
     
     @GetMapping("/TestScenarioEntityS")
     public List<TestScenarioEntity> testScenarioEntityS(@AuthenticationPrincipal CustomUserDetails userDetails) {

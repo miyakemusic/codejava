@@ -218,6 +218,15 @@ public class AppController {
     	return "testerscreen";
     }
 
+	@GetMapping("/testSummaryProject")
+    public String testSummaryProject(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) Long id) {		
+		ProjectEntitySimple project = this.projectRepositorySimple.getById( id );
+		model.addAttribute("project", project.getId());
+		model.addAttribute("projectName", project.getName());
+
+    	return "testsummaryproject";
+    }
+	
 	@GetMapping("/testSummaryEquipment")
     public String testSummaryEquipment(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value = "id", required=true) Long id) {
 		model.addAttribute("equipment", id);

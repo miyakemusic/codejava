@@ -107,7 +107,7 @@ class TestItemEditor {
 		var obj = new Object();
 		obj.id = this.id;
 		obj.direction = direction;
-		obj.test_item = testItem;
+		obj.testItemId = testItem;
 		obj.criteria = criteria;
 		obj.result = result;
 		

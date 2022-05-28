@@ -10,10 +10,14 @@ import com.miyake.demo.entities.PortTestEntity;
 @Repository
 public interface PortTestRepository extends JpaRepository<PortTestEntity, Long>  {
 
-	public List<PortTestEntity> findByPort(Long port);
-	@Transactional
-	public void deleteByPort(Long port);
-	public List<PortTestEntity> findByTester(Long testerid);
+//	public List<PortTestEntity> findByPort(Long port);
+//	@Transactional
+//	public void deleteByPort(Long port);
+//	public List<PortTestEntity> findByTester(Long testerid);
 	public List<PortTestEntity> findByTestItem(Long id);
+	public List<PortTestEntity> findByPorttestgroup(Long id);
+	
+	@Transactional
+	public void deleteByPorttestgroup(Long id);
 
 }

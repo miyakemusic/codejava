@@ -26,10 +26,10 @@ public class PortTestEntity implements Cloneable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	private Long port;
+	private Long porttestgroup;
 	
-	@Transient
-	public String port_name = "";
+//	@Transient
+//	public String port_name = "";
 	
 	@Column(name = "test_item")
 	private Long testItem;
@@ -56,14 +56,18 @@ public class PortTestEntity implements Cloneable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tester", insertable = false, updatable = false, nullable = true)
     private MyTesterEntity testerEntity;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "porttestgroup", insertable = false, updatable = false, nullable = true)
+    private PortTestGroupEntity portTestGroupEntity;
     
 	@Override
 	public PortTestEntity clone(){
 		try {
 			PortTestEntity ret = (PortTestEntity)super.clone();
-			ret.setId(null);
-			ret.setResult(null);
-			ret.setPort(null);
+			ret.id = null;
+			ret.result = null;
+			ret.porttestgroup = null;
 			return ret;
 		} catch (CloneNotSupportedException e) {
 			// TODO Auto-generated catch block

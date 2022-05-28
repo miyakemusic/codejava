@@ -33,14 +33,34 @@
 			});
 			
 			var port = "[[${port}]]";
-			var resource = 'testSummaryPortJson?id=' + port;
-			var table = new TestItemTable('tests', resource, 'hideport');
+			var resource = 'testDetailPortJson?id=' + port;
+			var table = new TestItemTable('tests', resource, 'hideequipment', 'hideport');
 			
 			var dialog = new TestItemAddDialog('addTestItemDialog', port, function(obj){
 				table.reload();
 			});
 			$('#addTestItem').click(function(){
 				dialog.show();
+			});
+			
+			
+			$('#level').append($('<option>').html('Detail').val(1));
+			$('#level').append($('<option>').html('Summary').val(2));
+			$('#level').change(function(){
+				if ($(this).val() == 2) {
+					table.resource('testSummaryPortJson?id=' + port);
+					table.columnVisible(5, false);
+					table.columnVisible(6, false);
+					table.columnVisible(7, false);
+					table.columnVisible(8, false);
+				}
+				else if ($(this).val() == 1) {
+					table.resource('testDetailPortJson?id=' + port);
+					table.columnVisible(5, true);
+					table.columnVisible(6, true);
+					table.columnVisible(7, true);
+					table.columnVisible(8, true);
+				}
 			});
 		});
 	</script>
@@ -53,7 +73,7 @@
     <div>Project: <a href="projectsummary" th:href="@{projectsummary(id=${projectid})}"><span th:text="${projectName}"></span></a></div>
     <div> Equipment: <a href="portsummary" th:href="@{portsummary(id=${equipmentid})}"><span th:text="${equipmentName}"></span></a></div>
 
-    <button id="addTestItem">Add</button>
+    <button id="addTestItem">Add</button><select id="level"></select>
     <div id="addTestItemDialog"></div>
     <table id="tests" class="table table-striped table-bordered"></table>
 </body>

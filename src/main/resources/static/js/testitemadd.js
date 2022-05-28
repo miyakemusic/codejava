@@ -4,11 +4,15 @@ class TestItemAdd {
 		this.testitemListDiv = div + '_testitemList';
 		this.testPointListDiv = div + '_testPointList';
 		this.testitemtable = div + '_testitemtable';
+		this.testname = div + '_name';
 		
 		$('#' + div).append('<div>Test Point: <select id="' + this.testPointListDiv + '"></select></div>');
 		$('#' + div).append('<div>Category: <select id="' + testitemCategoryListDiv + '"></select></div>');
 //		$('#' + div).append('<div>Test Item: <select id="' + this.testitemListDiv + '"></select></div>');
+		$('#' + div).append('Test Name:<input type="text" id="' + this.testname + '">');
 		$('#' + div).append('<table id="' + this.testitemtable + '"></table>');
+		
+		$('#' + this.testname).css('width', '100%');
 		$('#' + this.testitemtable).css('width', '100%');
 		
 		var me = this;
@@ -49,6 +53,7 @@ class TestItemAdd {
 			
 		$('#' + testitemCategoryListDiv).change(function(){
 			retreiveTestItems($('#' + testitemCategoryListDiv).val());
+			$('#' + me.testname).val($(this).children('option:selected').text() + "@");
 			updateTable($('#' + testitemCategoryListDiv).val());
 		});
 		
@@ -125,6 +130,10 @@ class TestItemAdd {
 		}		
 		return ret;
 	}
+	
+	testName() {
+		return $('#' + this.testname).val();
+	}
 }
 class TestItemAddDialog{
 	constructor(div, port, onOK) {
@@ -136,7 +145,7 @@ class TestItemAddDialog{
 		$("#" + this.dialogid).dialog({
 			modal:true,
 			autoOpen: false,
-			title: "",
+			title: "Add Test",
 			width: 800,
 			height: 700,
 			buttons: {
@@ -147,6 +156,8 @@ class TestItemAddDialog{
 					obj.port = port;
 					obj.testItem = chooser.testItem();
 					obj.testPoint = chooser.testPoint();
+					obj.testGroupName = chooser.testName();
+					
 					var json = JSON.stringify(obj);
 					$.ajax({
 						type: "POST",

@@ -16,7 +16,7 @@ class PortDetail {
 			url = "/PortTestEntityS?parent=" + id;
 		}
 		else if (type == 'equipment') {
-			url = "/PortTestEntityByEquipment?equipment=" + id;
+			url = "/PortTestJsonByEquipment?equipment=" + id;
 		}
 		
 		var table = $('#' + this.tableid).DataTable({
@@ -30,11 +30,11 @@ class PortDetail {
 			            }
 			        ],
 			"aoColumns": [
-				{ "sTitle": "ID", "mData": "test_itemEntity.id" },
-				{ "sTitle": "Port", "mData": "port_name" },
-				{ "sTitle": "Test Point", "mData": "directionEntity.name" },
-				{ "sTitle": "Category", "mData": "test_itemEntity.categoryEntity.category"},
-				{ "sTitle": "Test Item", "mData": "test_itemEntity.test_item"},
+				{ "sTitle": "ID", "mData": "id" },
+				{ "sTitle": "Port", "mData": "portName" },
+				{ "sTitle": "Test Point", "mData": "testPoint" },
+				{ "sTitle": "Category", "mData": "testCategory"},
+				{ "sTitle": "Test Item", "mData": "testItem"},
 				{ "sTitle": "Criteria", "mData": "criteria"},
 				{ "sTitle": "Result", "mData": "result"},
 				{ "sTitle": "Pass/Fail", "mData": "passfail"},

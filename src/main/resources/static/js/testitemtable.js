@@ -1,5 +1,5 @@
 class TestItemTable {
-	constructor(div, resource, hideport) {
+	constructor(div, resource, hideequipment, hideport) {
 //		var equipment = "[[${equipment}]]";
 
 		var tableid = div + '_testitemtable';
@@ -16,19 +16,19 @@ class TestItemTable {
 			                "searchable": false
 			            },	
 			            {
-							"targets": 5,
+							"targets": 7,
 							"render": function ( data, type, full, meta ) {
 									return '<button class="btn btn-link" name="Criteria" id="criteria_' + full.id + '">' + full.criteria + '</button>';
 							}
 						},	     
 			            {
-							"targets": 6,
+							"targets": 8,
 							"render": function ( data, type, full, meta ) {
 									return '<button class="btn btn-link" name="Result" id="result_' + full.id + '">' + full.result + '</button>';
 							}
 						},	
 			            {
-							"targets": 8,
+							"targets": 10,
 							"render": function ( data, type, full, meta ) {
 									var html = '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">' + 'Edit' + '</button>';
 									html += '<button class="btn-edit" name="Delete" id="delete_' + full.id + '">' + 'Delete' + '</button>';
@@ -38,19 +38,25 @@ class TestItemTable {
 			        ],
 			"aoColumns": [
 				{ "sTitle": "ID", "mData": "id" },
+				{ "sTitle": "Equipment", "mData": "equipment" },
 				{ "sTitle": "Port", "mData": "port" },
 				{ "sTitle": "Test Point", "mData": "testPoint" },
+				{ "sTitle": "Group", "mData": "testGroup" },
 				{ "sTitle": "Test Category", "mData": "testCategory" },
 				{ "sTitle": "Test Item", "mData": "testItem" },
-				{ "sTitle": "Criteria", "mData": "criteria" },
+				{ "sTitle": "Criteria (parameter=v)", "mData": "criteria" },
 				{ "sTitle": "Result", "mData": "result" },
 				{ "sTitle": "Pass/Fail", "mData": "passFail" },
 				{ "sTitle": "Edit", "mData": null },
 			]
 		});			
 		$('#' + tableid).css('width', '100%');
-		if (hideport != null) {
+		
+		if (hideequipment != null) {
 			this.table.column( 1 ).visible( false );
+		}		
+		if (hideport != null) {
+			this.table.column( 2 ).visible( false );
 		}
 				
 		var me = this;
@@ -86,7 +92,7 @@ class TestItemTable {
 		}
 		
 		me.table.on( 'draw', function () {
-			$('.btn-edit').click(function(){
+			$('.btn-link').click(function(){
 				//$("#textdialog").dialog({ title: $(this).attr('name')});
 				me.selectedId = $(this).attr('id').split('_')[1];
 				//selectedField = $(this).attr('id').split('_')[0];
@@ -99,7 +105,14 @@ class TestItemTable {
 				else if ($(this).attr('name') == 'Edit') {
 
 				}
-				else if ($(this).attr('name') == 'Delete') {
+				else {
+					window.open("testSummaryPort?id=" + me.selectedId, "_blank");
+				}
+			});
+			
+			$('.btn-edit').click(function(){
+				me.selectedId = $(this).attr('id').split('_')[1];
+				if ($(this).attr('name') == 'Delete') {
 					$.ajax({
 						type: "DELETE",
 						url: "deletePortTest?id=" + me.selectedId,
@@ -111,15 +124,6 @@ class TestItemTable {
 						alert(e);
 					});
 				}
-				else {
-					window.open("testSummaryPort?id=" + me.selectedId, "_blank");
-				}
-			});
-			
-			$('.btn-edit').click(function(){
-				me.selectedId = $(this).attr('id').split('_')[1];
-				//selectedField = $(this).attr('id').split('_')[0];
-				$("#" + me.editdialogid).dialog('open');
 			});
 		});
 		
@@ -129,6 +133,14 @@ class TestItemTable {
 				me.table.ajax.reload();
 			}
 		});
+	}
+	
+	columnVisible(column, visible) {
+		this.table.column( column ).visible( visible );
+	}
+	
+	resource(url) {
+		this.table.ajax.url(url).load();
 	}
 	
 	reload() {

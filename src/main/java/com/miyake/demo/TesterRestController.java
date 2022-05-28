@@ -23,6 +23,7 @@ import com.miyake.demo.entities.EquipmentEntity;
 import com.miyake.demo.entities.MyTesterEntity;
 import com.miyake.demo.entities.PortEntity;
 import com.miyake.demo.entities.PortTestEntity;
+import com.miyake.demo.entities.PortTestGroupEntity;
 import com.miyake.demo.entities.ProjectEntity;
 import com.miyake.demo.entities.TestScenarioItemEntity;
 import com.miyake.demo.entities.TesterCapabilityEntity;
@@ -37,6 +38,7 @@ import com.miyake.demo.jsonobject.WebSocketSignal;
 import com.miyake.demo.repository.EquipmentRepository;
 import com.miyake.demo.repository.MyTesterRepository;
 import com.miyake.demo.repository.PortRepository;
+import com.miyake.demo.repository.PortTestGroupRepository;
 import com.miyake.demo.repository.PortTestRepository;
 import com.miyake.demo.repository.ProjectRepository;
 import com.miyake.demo.repository.TestScenarioItemRepository;
@@ -66,6 +68,9 @@ public class TesterRestController {
    
     @Autowired
     private ProjectRepository projectRepository;
+    
+    @Autowired
+    private PortTestGroupRepository portTestGroupRepository;
     
     @Autowired
     private MyMessageHandler messageHandler;
@@ -115,13 +120,25 @@ public class TesterRestController {
     	return userDetails.getTester();
     }
     
+    private List<PortTestEntity> findPortTestEntitiesByPort(Long port) {
+    	List<PortTestEntity> ret = new ArrayList<PortTestEntity>();
+    	
+    	List<PortTestGroupEntity> groups = this.portTestGroupRepository.findByPort(port);
+		for (PortTestGroupEntity group : groups) {
+    		List<PortTestEntity> portTests = group.getPortTests();
+    		ret.addAll(portTests);
+		}
+
+    	return ret;
+    }
+    
     @GetMapping("/equipmentTestForTester")
     public TestPlan2 equipmentTestForTester(@AuthenticationPrincipal CustomTesterDetails userDetails, @RequestParam(value = "id", required=true) Long id) {
     	TestPlan2 testPlan = new TestPlan2();
     	EquipmentEntity equipment = this.equipmentRepository.getById(id);
 		
 		for (PortEntity port : this.portRepository.findByEquipment(equipment.getId())) {
-	    	List<PortTestEntity> porttests = this.portTestRepository.findByPort(port.getId());
+	    	List<PortTestEntity> porttests =findPortTestEntitiesByPort(port.getId());
 	    	for (PortTestEntity pte : porttests) {
 	    		boolean support = true;//supportids.contains(pte.getTestItem());
 	    		
@@ -130,8 +147,9 @@ public class TesterRestController {
 	    				pte.getResult(), pte.getPassfail(), support);
 	    		testPlan.add(element);
 	    		
-	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(pte.getPort(), 
-	    				this.portRepository.getById(pte.getPort()).getPort_name()).testItem(pte.getTestItem(), 
+	    		
+	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(port.getId(), 
+	    				this.portRepository.getById(port.getId()).getPort_name()).testItem(pte.getTestItem(), 
 	    						pte.getTest_itemEntity().getTest_item());
 	    	}    			
 		}  	
@@ -160,7 +178,7 @@ public class TesterRestController {
     		EquipmentEntity equipment = this.equipmentRepository.getById(testScenarioItemEntity.getEquipment());
     		
     		for (PortEntity port : this.portRepository.findByEquipment(equipment.getId())) {
-    	    	List<PortTestEntity> porttests = this.portTestRepository.findByPort(port.getId());
+    	    	List<PortTestEntity> porttests = this.findPortTestEntitiesByPort(port.getId());
     	    	for (PortTestEntity pte : porttests) {
     	    		boolean support = supportids.contains(pte.getTestItem());
     	    		
@@ -169,8 +187,9 @@ public class TesterRestController {
     	    				pte.getResult(), pte.getPassfail(), support);
     	    		testPlan.add(element);
     	    		
-    	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(pte.getPort(), 
-    	    				this.portRepository.getById(pte.getPort()).getPort_name()).testItem(pte.getTestItem(), 
+    	    		
+    	    		testPlan.presentation().equipment(equipment.getId(), equipment.getName()).port(port.getId(), 
+    	    				this.portRepository.getById(port.getId()).getPort_name()).testItem(pte.getTestItem(), 
     	    						pte.getTest_itemEntity().getTest_item());
     	    	}    			
     		}

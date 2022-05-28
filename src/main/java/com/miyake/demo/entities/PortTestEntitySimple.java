@@ -22,7 +22,7 @@ public class PortTestEntitySimple implements Cloneable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	private Long port;
+	private Long porttestgroup;
 	
 	@Column(name = "test_item")
 	private Long testItem;
@@ -43,9 +43,9 @@ public class PortTestEntitySimple implements Cloneable {
 
 		try {
 			PortTestEntitySimple ret= (PortTestEntitySimple)super.clone();
-			ret.setId(null);
-			ret.setResult(null);
-			ret.setPort(null);
+			ret.id = null;
+			ret.result = null;
+			ret.porttestgroup = null;
 			return ret;
 		} catch (CloneNotSupportedException e) {
 			// TODO Auto-generated catch block
