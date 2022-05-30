@@ -2,6 +2,8 @@ class TestItemTable {
 	constructor(div, resource, hideequipment, hideport) {
 //		var equipment = "[[${equipment}]]";
 
+		var me = this;
+					
 		var tableid = div + '_testitemtable';
 		$('#' + div).append('<table id="' + tableid + '" class="table table-striped table-bordered"></table>');
 		
@@ -59,7 +61,7 @@ class TestItemTable {
 			this.table.column( 2 ).visible( false );
 		}
 				
-		var me = this;
+		
 		var criteriaDialogId = div + '_criteriadialog';
 		$('#' + div).append('<div id="' + criteriaDialogId + '"></div>');
 		var criteriaDialog = new MyTextDialog(criteriaDialogId, function(v) {
@@ -113,16 +115,8 @@ class TestItemTable {
 			$('.btn-edit').click(function(){
 				me.selectedId = $(this).attr('id').split('_')[1];
 				if ($(this).attr('name') == 'Delete') {
-					$.ajax({
-						type: "DELETE",
-						url: "deletePortTest?id=" + me.selectedId,
-						contentType: "application/json",
-						dataType : "text"
-					}).done(function(data){
-						me.table.ajax.reload();
-					}).fail(function(XMLHttpRequest, status, e){
-						alert(e);
-					});
+					me.callbackDelete(me.selectedId);
+					callbackDelete('delete', me.selectedId);
 				}
 			});
 		});
@@ -144,6 +138,14 @@ class TestItemTable {
 	}
 	
 	reload() {
+		this.table.ajax.reload();
+	}
+	
+	callbackDelete(callbackDelete) {
+		this.callbackDelete = callbackDelete;
+	}
+	
+	update() {
 		this.table.ajax.reload();
 	}
 }

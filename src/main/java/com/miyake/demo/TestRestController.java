@@ -724,6 +724,21 @@ public class TestRestController {
     	portTestRepository.deleteById(id);
     	return "OK";
     }
+
+    @DeleteMapping("/deletePortTestGroup")
+    public String deletePortTestGroup(@RequestParam(value = "id", required=true) Long id) {
+    	PortTestEntity portTest = this.portTestRepository.getById(id);
+    	
+    	List<Long> ids = new ArrayList<>();
+    	for (PortTestEntity pt : portTest.getPortTestGroupEntity().getPortTests()) {
+    		ids.add(pt.getId());
+    	}
+    	
+    	this.portTestRepository.deleteAllById(ids);
+    	this.portTestGroupRepository.deleteById(portTest.getPorttestgroup());
+
+    	return "OK";
+    }
     
 //    @DeleteMapping("/PortTestEntity")
 //    public String deletePortTest(@RequestParam(value = "id", required=true) String id) {
