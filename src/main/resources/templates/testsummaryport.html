@@ -65,17 +65,26 @@
 			
 			table.callbackDelete(function(id){
 				if ($('#' + optionDiv).val() == 1) {
-					deletePortTest(id);
+					deletePortTest("deletePortTest?id=" + id);
 				}
 				else if ($('#' + optionDiv).val() == 2) {
-					deletePortTestGroup(id);
+					deletePortTest("deletePortTestGroup?id=" + id);
 				}
 			});
 			
-			function deletePortTest(id) {
+			table.callbackCopy(function(id, count, condition) {
+				if ($('#' + optionDiv).val() == 1) {
+					copyPortTest("copyPortTest", id, condition);
+				}
+				else if ($('#' + optionDiv).val() == 2) {
+					copyPortTest("copyPortTestGroup", id, count, condition);
+				}				
+			});
+			
+			function deletePortTest(resource) {
 				$.ajax({
 					type: "DELETE",
-					url: "deletePortTest?id=" + id,
+					url: resource,
 					contentType: "application/json",
 					dataType : "text"
 				}).done(function(data){
@@ -84,10 +93,18 @@
 					alert(e);
 				});				
 			}
-			function deletePortTestGroup(id) {
+			
+			function copyPortTest(resource, id, count, condition) {
+				var obj = new Object();
+				obj.id = id;
+				obj.count = count;
+				obj.condition = condition;
+
+				var json = JSON.stringify(obj);
 				$.ajax({
-					type: "DELETE",
-					url: "deletePortTestGroup?id=" + id,
+					type: "POST",
+					url: resource,
+					data: json,
 					contentType: "application/json",
 					dataType : "text"
 				}).done(function(data){

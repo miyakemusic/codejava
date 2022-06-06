@@ -34,7 +34,6 @@ public class PortTestGroupEntity {
 		try {
 			PortTestGroupEntity ret = (PortTestGroupEntity)super.clone();
 			ret.id = null;
-			ret.port = null;
 			return ret;
 		}
 		catch (Exception e) {

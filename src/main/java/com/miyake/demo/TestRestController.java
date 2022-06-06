@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +13,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -59,6 +64,7 @@ import com.miyake.demo.entities.TesterVendorEntity;
 import com.miyake.demo.entities.EquipmentPresentationEntity;
 import com.miyake.demo.entities.UserEntity;
 import com.miyake.demo.entities.UserGroupEntity;
+import com.miyake.demo.jsonobject.CopyConditionJson;
 import com.miyake.demo.jsonobject.DiagramItem;
 import com.miyake.demo.jsonobject.DiagramItemContainer;
 import com.miyake.demo.jsonobject.DiagramItemContainers;
@@ -736,6 +742,82 @@ public class TestRestController {
     	
     	this.portTestRepository.deleteAllById(ids);
     	this.portTestGroupRepository.deleteById(portTest.getPorttestgroup());
+
+    	return "OK";
+    }
+    
+    @PostMapping("/copyPortTest")
+    public String copyPortTest(@RequestBody CopyConditionJson copyCondition) {
+
+    	PortTestEntitySimple portTest = this.portTestRepositorySimple.getById(copyCondition.id);
+    	PortTestEntitySimple newPortTest= new PortTestEntitySimple();
+    		
+    	newPortTest.setTestItem(portTest.getTestItem());
+    	newPortTest.setDirection(portTest.getDirection());
+    	newPortTest.setCriteria(portTest.getCriteria());
+    	newPortTest.setPorttestgroup(portTest.getPorttestgroup());
+    
+    	this.portTestRepositorySimple.save(newPortTest);
+    	
+    	String condition = copyCondition.condition;
+    	
+ //   	portTestRepository.id;
+    	
+    	return "OK";
+    }
+
+    @PostMapping("/copyPortTestGroup")
+    public String copyPortTestGroup(@RequestBody CopyConditionJson copyCondition) {
+    	PortTestEntity refPortTest = this.portTestRepository.getById(copyCondition.id);
+    	String condition = copyCondition.condition;
+    	
+    	String targetLine = null;
+    	String targetValue = null;
+    	String changer = null;
+    	
+    	if (condition != null && !condition.isEmpty() && condition.contains(";")) {
+    		String[] tmp = condition.split(";");
+    		targetLine = tmp[0];
+    		//targetValue = tmp[1];
+    		targetValue = targetLine.split("=")[0];
+    		changer = tmp[1];
+    	}
+    	
+    	AutoName autoName = new AutoName(copyCondition.count, refPortTest.getPortTestGroupEntity().getName());
+
+    	ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("graal.js");
+    	
+    	for (int i = 0; i < autoName.size(); i++) {
+    		PortTestGroupEntity group = new PortTestGroupEntity();
+    		group.setName(autoName.nextName());
+    		group.setPort(refPortTest.getPortTestGroupEntity().getPort());
+    		group = this.portTestGroupRepository.save(group);
+    		
+    		for (PortTestEntity e : refPortTest.getPortTestGroupEntity().getPortTests()) {
+    			PortTestEntity newPortTest = e.clone();
+    			if (targetLine != null) {
+    				changer = changer.replace("index", String.valueOf(i+1));
+    				try {
+						String evaled = targetValue + "=" + scriptEngine.eval(targetLine + changer).toString();
+						newPortTest.setCriteria(newPortTest.getCriteria().replace(targetLine, evaled));
+					} catch (ScriptException e1) {
+						e1.printStackTrace();
+					}
+    				
+    			}
+    			newPortTest.setPorttestgroup(group.getId());
+    			this.portTestRepository.save(newPortTest);
+    		}
+    	}
+//    	PortTestEntity portTest = this.portTestRepository.getById(id);
+//    	
+//    	List<Long> ids = new ArrayList<>();
+//    	for (PortTestEntity pt : portTest.getPortTestGroupEntity().getPortTests()) {
+//    		ids.add(pt.getId());
+//    	}
+//    	
+//    	this.portTestRepository.deleteAllById(ids);
+//    	this.portTestGroupRepository.deleteById(portTest.getPorttestgroup());
 
     	return "OK";
     }
@@ -1458,6 +1540,8 @@ public class TestRestController {
 		private int start;
 		private int size;
 
+		private List<String> signs = Arrays.asList("#", "@");
+		
 		public AutoName(Integer number, String name) {
 	    	if (number == null) {
 	    		this.size = 1;
@@ -1467,12 +1551,18 @@ public class TestRestController {
 	    	}
 	    	this.body = name;
 	    	
-	    	if (name.contains("#")) {
-	    		String[] tmp = name.split("#");
+	    	String sign = "";
+	    	for (String s : signs) {
+	    		if (name.contains(s)) {
+	    			sign = s;
+	    		}
+	    	}
+	    	if (!sign.isEmpty()) {
+	    		String[] tmp = name.split(sign);
 	    		String startStr = tmp[1];
 	    		this.digit = startStr.length();
 	    		this.start = Integer.valueOf(startStr) + 1;
-	    		body = tmp[0] + "#";
+	    		body = tmp[0] + sign;
 	    	}
 		}
 		

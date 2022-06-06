@@ -92,6 +92,11 @@ public class AppController {
         return "ports";
     }
  
+    @GetMapping("/testpoints")
+    public String testpoints(Model model) {
+        return "testpoints";
+    }
+    
     @GetMapping("/cables")
     public String cables(Model model) {
         model.addAttribute("title", "Cables");

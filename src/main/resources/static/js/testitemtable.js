@@ -3,7 +3,29 @@ class TestItemTable {
 //		var equipment = "[[${equipment}]]";
 
 		var me = this;
-					
+
+		var dialogDiv = div + '_dialog';
+		var copyCount = div + '_copyCount';
+		var copyCondition = div + '_copyCondition';
+		
+		$('#' + div).append('<div id="' + dialogDiv + '"><div>Count: <input type="text" id="' + copyCount + '" value="1"></div><div>Condition: <input type="text" id="' + copyCondition + '"></div></div>');
+		$("#" + dialogDiv).dialog({
+			modal:true,
+			autoOpen: false,
+			title: "",
+			width: 500,
+			height: 300,
+			buttons: {
+				"OK": function() {
+					$(this).dialog("close");
+					me.callbackCopy(me.selectedId, $('#' + copyCount).val(), $('#' + copyCondition).val());				
+				},
+				"Cancel": function() {
+					$(this).dialog("close");
+				}
+			}
+		});	
+		
 		var tableid = div + '_testitemtable';
 		$('#' + div).append('<table id="' + tableid + '" class="table table-striped table-bordered"></table>');
 		
@@ -32,7 +54,7 @@ class TestItemTable {
 			            {
 							"targets": 10,
 							"render": function ( data, type, full, meta ) {
-									var html = '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">' + 'Edit' + '</button>';
+									var html = '<button class="btn-edit" name="Copy" id="copy_' + full.id + '">' + 'Copy' + '</button>';
 									html += '<button class="btn-edit" name="Delete" id="delete_' + full.id + '">' + 'Delete' + '</button>';
 									return html;
 							}
@@ -104,9 +126,6 @@ class TestItemTable {
 				else if ($(this).attr('name') == 'Result') {
 					resultDialog.show($(this).text());
 				}
-				else if ($(this).attr('name') == 'Edit') {
-
-				}
 				else {
 					window.open("testSummaryPort?id=" + me.selectedId, "_blank");
 				}
@@ -117,6 +136,9 @@ class TestItemTable {
 				if ($(this).attr('name') == 'Delete') {
 					me.callbackDelete(me.selectedId);
 					callbackDelete('delete', me.selectedId);
+				}
+				else if ($(this).attr('name') == 'Copy') {
+					$("#" + dialogDiv).dialog('open');
 				}
 			});
 		});
@@ -144,7 +166,10 @@ class TestItemTable {
 	callbackDelete(callbackDelete) {
 		this.callbackDelete = callbackDelete;
 	}
-	
+	callbackCopy(callbackCopy) {
+		this.callbackCopy = callbackCopy;
+	}
+		
 	update() {
 		this.table.ajax.reload();
 	}
