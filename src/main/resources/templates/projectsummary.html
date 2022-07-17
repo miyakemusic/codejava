@@ -45,10 +45,9 @@
 				                "visible": false,
 				                "searchable": false
 				            },
-				            {
+/*				            {
 								"targets": 1,
 								"render": function ( data, type, full, meta ) {
-									//return '<select class="category"></select>';
 									return '<button class="btn btn-link" name="Category" id="category_' + full.id + '">' + full.category + '</button>';
 								}
 							},
@@ -64,36 +63,33 @@
 									return '<button class="btn btn-link" name="Location" id="address_' + full.id + '">' + full.address + '</button>';
 								}
 							},	
-				            {
+*/
+							{
 								"targets": 4,
 								"render": function ( data, type, full, meta ) {
 									return '<a href="portsummary?id=' + full.id + '" target=”_blank”>' + full.ports + '</a>';
-									//return '<button class="btn btn-link" name="Ports" id="ports_' + full.id + '">' + full.ports + '</button>';
 								}
 							},	
 				            {
 								"targets": 5,
 								"render": function ( data, type, full, meta ) {
 									var cls = '';
-			//						if (full.testStatus.includes('Fails')) {
-			//							cls = "bg-danger";
-			//						}
 									return '<a href="testSummaryEquipment?id=' + full.id + '" target=”_blank”>' + full.testStatus + '</a>';
-									//return '<button class="btn btn-link" name="Ports" id="ports_' + full.id + '">' + full.ports + '</button>';
 								}
 							},
 				            {
 								"targets": 6,
 								"render": function ( data, type, full, meta ) {
-									//return '<a href="portsummary?id=' + full.id + '">' + full.ports + '</a>';
-									return '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">Edit</button>';
+									return '<button class="btn-edit" name="Edit" id="edit_' + full.id + '">Edit</button>' + 
+										'<button class="btn-edit" name="Copy" id="copy_' + full.id + '">Copy</button>' + 
+										'<button class="btn-edit" name="Delete" id="delete_' + full.id + '">Delete</button>';
 								}
 							},	
 				        ],
 				"aoColumns": [
 					{ "sTitle": "ID", "mData": "id" },
-					{ "sTitle": "Category", "mData": "category" },
-					{ "sTitle": "Name", "mData": "name" },
+					{ "sTitle": "Equipment Category", "mData": "category" },
+					{ "sTitle": "Equipment Name", "mData": "name" },
 					{ "sTitle": "Location", "mData": "address" },
 					{ "sTitle": "Ports", "mData": "ports" },
 					{ "sTitle": "Test Progress", "mData": "testStatus" },
@@ -125,11 +121,18 @@
 					}
 				});
 				$('.btn-edit').click(function(){
-					selectedId = $(this).attr('id').split('_')[1];
-					selectedField = $(this).attr('id').split('_')[0];
+					if ($(this).attr('name') == 'Copy') {
+						selectedId = $(this).attr('id').split('_')[1];
+						selectedField = $(this).attr('id').split('_')[0];
+						$("#copydialog").dialog('open');						
+					}
+					else if ($(this).attr('name') == 'Edit') {
+						$('#textfield').val($(this).text());
+						selectedId = $(this).attr('id').split('_')[1];
+						selectedField = $(this).attr('id').split('_')[0];
+						$("#editdialog").dialog('open');						
+					}
 					
-//					$("#editdialog").dialog({ title: $(this).attr('name')});
-					$("#editdialog").dialog('open');
 				});
 			});
 			
@@ -213,7 +216,7 @@
 				}				
 			});
 			
-			$("#editdialog").dialog({
+			$("#copydialog").dialog({
 				modal:true,
 				autoOpen: false,
 				title: "",
@@ -326,8 +329,10 @@
 	<a href="equipmenttopology" th:href="@{equipmenttopology(id=${id})}" target="_blank">Topology</a>
 	<table id="summarytable" class="table table-striped table-bordered"></table>
 	<div id="textdialog"><input type="text" id="textfield"></div>
-	<div id="optiondialog"><select id="categoryOptions"></select></div>
-	<div id="editdialog"><select id="editOptions"></select><input type="text" id="copyCount" value="1"></div>
+	<div id="optiondialog"></div>
+	
+	<div id="editdialog"><select id="categoryOptions"></select><input type="text" id="textfield"></div>
+	<div id="copydialog"><select id="editOptions"></select><input type="text" id="copyCount" value="1"></div>
 	<div id="portdialog"></div>
 	<div id="equipmentchooser"></div>
 </body>

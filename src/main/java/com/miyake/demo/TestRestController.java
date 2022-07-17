@@ -772,17 +772,20 @@ public class TestRestController {
     	String condition = copyCondition.condition;
     	
     	String targetLine = null;
-    	String targetValue = null;
-    	String changer = null;
+    	String replaceLine = null;
+//    	String targetValue = null;
+ //   	String changer = null;
     	
     	if (condition != null && !condition.isEmpty() && condition.contains(";")) {
     		String[] tmp = condition.split(";");
     		targetLine = tmp[0];
+    		replaceLine = tmp[1];
     		//targetValue = tmp[1];
-    		targetValue = targetLine.split("=")[0];
-    		changer = tmp[1];
+//    		targetValue = targetLine.split("=")[0];
+//    		changer = tmp[1];
     	}
     	
+ //   	String newCriteria = refPortTest.getCriteria().replace(targetLine, replaceLine);
     	AutoName autoName = new AutoName(copyCondition.count, refPortTest.getPortTestGroupEntity().getName());
 
     	ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("graal.js");
@@ -796,10 +799,16 @@ public class TestRestController {
     		for (PortTestEntity e : refPortTest.getPortTestGroupEntity().getPortTests()) {
     			PortTestEntity newPortTest = e.clone();
     			if (targetLine != null) {
-    				changer = changer.replace("index", String.valueOf(i+1));
+    				String currentLine = replaceLine.replace("index", String.valueOf(i+1));
+    				
+//    				changer = changer.replace("index", String.valueOf(i+1));
     				try {
-						String evaled = targetValue + "=" + scriptEngine.eval(targetLine + changer).toString();
-						newPortTest.setCriteria(newPortTest.getCriteria().replace(targetLine, evaled));
+    					String leftEq = currentLine.split("=")[0];
+    					String rightEq = currentLine.split("=")[1];
+						String evaled = scriptEngine.eval(rightEq).toString();
+						String newCriteria = newPortTest.getCriteria().replace(targetLine, leftEq + "=" + evaled);
+						newPortTest.setCriteria(newCriteria);
+						//newPortTest.setCriteria(newPortTest.getCriteria().replace(targetLine, condition));
 					} catch (ScriptException e1) {
 						e1.printStackTrace();
 					}
@@ -1358,7 +1367,7 @@ public class TestRestController {
 		if (failCount > 0) {
 			testStatus = testStatus + "<label class=\"text-danger\"> ,Fails:" + failCount + "</label>";
 		}
-		else if (totalTestCount == passCount) {
+		else if ((totalTestCount == passCount) && (totalTestCount > 0)) {
 			testStatus = testStatus + "<label class=\"text-success\">Passed</label>";
 		}
 		else if (testedTotal == 0) {
